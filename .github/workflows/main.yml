@@ -1,0 +1,75 @@
+name: Build Mecha Bayanihan APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Build the game (one self-contained index.html)
+        run: |
+          npm ci
+          npm run build
+          mkdir -p android/app/src/main/assets
+          cp dist/index.html android/app/src/main/assets/index.html
+          echo "VERSION_NAME=$(grep -oP "APP_VERSION = 'v\K[0-9.]+" src/data.js)" >> "$GITHUB_ENV"
+
+      - name: Restore signing key from GitHub Secrets
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::error::Signing secrets are missing. Add ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS and ANDROID_KEY_PASSWORD (see README), then re-run this workflow."
+            exit 1
+          fi
+          echo "$KEYSTORE_BASE64" | base64 -d > android/app/release.jks
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Build signed APK
+        working-directory: android
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          VERSION_CODE: ${{ github.run_number }}
+        run: gradle :app:assembleRelease --no-daemon
+
+      - name: Rename APK and remove the key file
+        run: |
+          cp android/app/build/outputs/apk/release/app-release.apk MechaBayanihan.apk
+          rm -f android/app/release.jks
+
+      - name: Upload APK (Actions tab)
+        uses: actions/upload-artifact@v4
+        with:
+          name: MechaBayanihan-APK
+          path: MechaBayanihan.apk
+
+      - name: Publish to Releases (the in-game QR code points here)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.VERSION_NAME }}-build${{ github.run_number }}
+          name: Mecha Bayanihan v${{ env.VERSION_NAME }} (build ${{ github.run_number }})
+          make_latest: true
+          files: MechaBayanihan.apk
