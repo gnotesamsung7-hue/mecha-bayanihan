@@ -1,0 +1,40 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.markdave.mechabayanihan'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.markdave.mechabayanihan"
+        minSdk 24
+        targetSdk 34
+        // Set by GitHub Actions: build number and the game's APP_VERSION
+        versionCode((System.getenv("VERSION_CODE") ?: "1").toInteger())
+        versionName(System.getenv("VERSION_NAME") ?: "1.0.0")
+    }
+
+    signingConfigs {
+        release {
+            // The keystore and passwords come from GitHub Secrets — never committed.
+            storeFile file('release.jks')
+            storeType 'pkcs12'
+            storePassword System.getenv("KEYSTORE_PASSWORD")
+            keyAlias System.getenv("KEY_ALIAS")
+            keyPassword System.getenv("KEY_PASSWORD")
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
