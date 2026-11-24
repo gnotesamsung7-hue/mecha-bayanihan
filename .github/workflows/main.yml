@@ -38,7 +38,8 @@ jobs:
             exit 1
           fi
           # tolerate spaces / line breaks picked up while pasting
-          CLEAN=$(printf '%s' "$KEYSTORE_BASE64" | tr -d ' \t\r\n')
+          # base64 never contains ':' — drop a pasted label like "Value (...):" if present
+          CLEAN=$(printf '%s' "$KEYSTORE_BASE64" | tr -d ' \t\r\n' | sed 's/.*://')
           echo "ANDROID_KEYSTORE_BASE64 has ${#CLEAN} characters (expected 3576)"
           if ! printf '%s' "$CLEAN" | base64 -d > android/app/release.jks 2>/dev/null; then
             echo "::error::ANDROID_KEYSTORE_BASE64 is not valid (${#CLEAN} of 3576 characters). Delete it and paste the long line from the secrets file again — all of it, nothing else."
