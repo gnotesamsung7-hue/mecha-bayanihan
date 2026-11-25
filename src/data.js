@@ -33,7 +33,7 @@ import pilotDatuDilimImg from './assets/pilot_datu_dilim.webp';
 import cutinDatuDilimImg from './assets/cutin_datuDilim.webp';
 
 export const GAME_TITLE = 'Mecha Bayanihan Tactics';
-export const APP_VERSION = 'v1.3.2';
+export const APP_VERSION = 'v1.4.0';
 export const CUSTOM_TEMPLATE_IMG = customTemplateImg;
 export const ICON_IMG = iconImg;
 export const KEYART_IMG = keyartImg;
@@ -114,6 +114,10 @@ export const MECHA = {
       { name: 'Bumper Shield Bash', power: 95, min: 1, max: 1, en: 10, hit: 85, crit: 10, fx: 'slash' },
       { name: 'Barangay Wall Cannon', power: 190, min: 2, max: 4, en: 45, hit: 78, crit: 15, ult: true, fx: 'mega' },
     ],
+    modes: [
+      { id: 'patrol', name: 'Patrol Mode' },
+      { id: 'fortress', name: 'Barangay Fortress', art: 'mecha_tanod_custom_fortress.png', desc: '+35% DEF, −2 Move, −15 MOB', mod: { move: -2, mob: -15, defPct: 35 } },
+    ],
     look: { img: tanodCustomImg, facing: 'L', head: 'tanod', torso: 'heavy', arms: 'heavy', legs: 'heavy', pack: 'thrusters', weapon: 'shield', colors: { p: '#1e3a8a', s: '#e2e8f0', a: '#f59e0b', e: '#67e8f9' } },
   },
   agilaMk2: {
@@ -125,6 +129,10 @@ export const MECHA = {
       { name: 'Feather Vulcans', power: 70, min: 1, max: 2, en: 0, hit: 86, crit: 5, fx: 'shot' },
       { name: 'Haring Ibon Dive', power: 230, min: 1, max: 3, en: 55, hit: 82, crit: 25, ult: true, fx: 'mega' },
     ],
+    modes: [
+      { id: 'robot', name: 'Robot Mode' },
+      { id: 'jet', name: 'Haring Ibon Jet', art: 'mecha_agila_mk2_jet.png', desc: '+2 Move, +20 MOB, −20% DEF', mod: { move: 2, mob: 20, defPct: -20 } },
+    ],
     look: { img: agilaImg, facing: 'L', head: 'agila', torso: 'slim', arms: 'standard', legs: 'thruster', pack: 'eagle', weapon: 'rifle', colors: { p: '#f8fafc', s: '#78350f', a: '#fbbf24', e: '#fde047' } },
   },
   sarimanokZ: {
@@ -135,7 +143,9 @@ export const MECHA = {
       { name: 'Prism Beam Rifle', power: 125, min: 1, max: 4, en: 0, hit: 80, crit: 12, fx: 'beam' },
       { name: 'Kampilan Saber', power: 140, min: 1, max: 1, en: 10, hit: 86, crit: 18, fx: 'slash' },
       { name: 'Bahaghari Burst', power: 290, min: 2, max: 5, en: 70, hit: 85, crit: 30, ult: true, fx: 'rainbow' },
+      { name: 'Plume Storm (MAP)', power: 170, min: 1, max: 3, len: 3, map: 'cone', en: 60, hit: 82, crit: 10, ult: true, fx: 'rainbow' },
     ],
+    awakenArt: 'mecha_sarimanok_zeta_awakened.png',
     look: { img: sarimanokImg, facing: 'L', head: 'sarimanok', torso: 'slim', arms: 'blade', legs: 'thruster', pack: 'plume', weapon: 'sword', colors: { p: '#f8fafc', s: '#dc2626', a: '#16a34a', e: '#22d3ee' } },
   },
   kapreGrunt: {
@@ -158,6 +168,10 @@ export const MECHA = {
       { name: 'Hoof Cannon', power: 95, min: 2, max: 3, en: 10, hit: 72, crit: 8, fx: 'missile' },
       { name: 'Ligaw na Daan', power: 220, min: 1, max: 2, en: 50, hit: 86, crit: 25, ult: true, fx: 'mega' },
     ],
+    modes: [
+      { id: 'robot', name: 'Robot Mode' },
+      { id: 'beast', name: 'Kabayo Beast Mode', art: 'mecha_tikbalang_beast.png', desc: '+1 Move, +10 MOB, +10% ATK, −15% DEF', mod: { move: 1, mob: 10, atkPct: 10, defPct: -15 } },
+    ],
     look: { img: tikbalangImg, facing: 'L', liberatedHue: 180, head: 'tikbalang', torso: 'standard', arms: 'claw', legs: 'heavy', pack: 'thrusters', weapon: 'whip', colors: { p: '#334155', s: '#7c2d12', a: '#38bdf8', e: '#ef4444' } },
   },
   manananggal: {
@@ -179,7 +193,9 @@ export const MECHA = {
       { name: 'Buwan Mega Particle', power: 130, min: 2, max: 4, en: 0, hit: 78, crit: 12, fx: 'beam' },
       { name: 'Serpent Fang', power: 90, min: 1, max: 1, en: 0, hit: 82, crit: 10, fx: 'slash' },
       { name: 'Eklipse Devourer', power: 300, min: 1, max: 5, en: 80, hit: 82, crit: 30, ult: true, fx: 'mega' },
+      { name: 'Moon-Eater Breath (MAP)', power: 180, min: 1, max: 3, len: 3, map: 'cone', en: 70, hit: 80, crit: 10, ult: true, fx: 'mega' },
     ],
+    awakenArt: 'mecha_bakunawa_awakened.png',
     look: { img: bakunawaImg, liberatedHue: 210, head: 'bakunawa', torso: 'heavy', arms: 'heavy', legs: 'heavy', pack: 'serpent', weapon: 'shield', colors: { p: '#991b1b', s: '#0f172a', a: '#f59e0b', e: '#fde047' } },
   },
   jeepneyKaiser: {
@@ -191,11 +207,52 @@ export const MECHA = {
       { name: 'Estribo Saber', power: 125, min: 1, max: 1, en: 10, hit: 86, crit: 15, fx: 'slash' },
       { name: 'Para Po! Full Throttle', power: 240, min: 1, max: 3, en: 55, hit: 82, crit: 25, ult: true, fx: 'mega' },
     ],
+    modes: [
+      { id: 'robot', name: 'Robot Mode' },
+      { id: 'jeep', name: 'Jeep Mode', art: 'mecha_jeepney_kaiser_jeep.png', desc: '+2 Move, +15 MOB, −15% ATK, −10% DEF', mod: { move: 2, mob: 15, atkPct: -15, defPct: -10 } },
+    ],
+    awakenArt: 'mecha_jeepney_kaiser_awakened.png',
     look: { img: jeepneyKaiserImg, facing: 'L', head: 'jeep', torso: 'jeepney', arms: 'standard', legs: 'standard', pack: 'thrusters', weapon: 'rifle', colors: { p: '#cbd5e1', s: '#dc2626', a: '#facc15', e: '#22d3ee' } },
   },
 };
 
 export const STARTER_MECHA = ['tanod01', 'kapreGrunt', 'jeepneyKaiser'];
+
+// ---------- Flagships (one per side in every stage) ----------
+export const FLAGSHIPS = {
+  balangay: {
+    id: 'balangay', name: 'BRP Balangay', short: 'BRP Balangay', cls: 'Flagship', rarity: 'SSR', faction: 'Bayanihan', ship: true,
+    hp: 3200, en: 260, atk: 90, def: 110, mob: 30, move: 2,
+    lore: 'A space-going balangay with twin outriggers and a lantaka on every rib. Mothership of the Bayanihan squad.',
+    weapons: [
+      { name: 'Lantaka CIWS', power: 75, min: 1, max: 2, en: 0, hit: 82, crit: 5, fx: 'shot' },
+      { name: 'Balangay Main Cannon', power: 150, min: 2, max: 6, en: 15, hit: 72, crit: 8, fx: 'beam' },
+      { name: 'Bayanihan Mega Cannon (MAP)', power: 200, min: 1, max: 7, len: 7, map: 'line', en: 90, hit: 85, crit: 10, fx: 'mega' },
+    ],
+    look: { img: INSTALLED_ART['ship_brp_balangay.png'], facing: 'L', ship: 'balangay', colors: { p: '#e2e8f0', s: '#1d4ed8', a: '#facc15', e: '#22d3ee' } },
+  },
+  karakoa: {
+    id: 'karakoa', name: 'Karakoa ng Dilim', short: 'Karakoa', cls: 'Flagship', rarity: 'SSR', faction: 'Dilim', ship: true,
+    hp: 2800, en: 260, atk: 95, def: 100, mob: 30, move: 2,
+    lore: 'A war-karakoa forged from black iron and eclipse-glass. Its prow is the open jaw of a serpent.',
+    weapons: [
+      { name: 'Anino Flak', power: 75, min: 1, max: 2, en: 0, hit: 80, crit: 5, fx: 'shot' },
+      { name: 'Karakoa Dark Cannon', power: 150, min: 2, max: 6, en: 15, hit: 72, crit: 8, fx: 'beam' },
+      { name: 'Lamon ng Dilim (MAP)', power: 190, min: 1, max: 3, len: 3, map: 'cone', en: 90, hit: 82, crit: 10, fx: 'mega' },
+    ],
+    look: { img: INSTALLED_ART['ship_karakoa_dilim.png'], facing: 'L', ship: 'karakoa', colors: { p: '#3f3f46', s: '#7f1d1d', a: '#f59e0b', e: '#ef4444' } },
+  },
+};
+
+// ---------- Team-up bonds (named combos get +20%) ----------
+export const BONDS = [
+  { a: 'migo', b: 'berto', name: 'Biyaheng Bayanihan' },
+  { a: 'migo', b: 'diwata', name: 'Anting-Anting ng Bundok' },
+  { a: 'migo', b: 'kapitanPula', name: 'Rival Crossfire' },
+  { a: 'kapitanPula', b: 'inday', name: 'Pulang Kidlat Fiesta' },
+  { a: 'tisoy', b: 'berto', name: 'Tondo–Cubao Express' },
+  { a: 'inday', b: 'diwata', name: 'Bagyo at Bundok' },
+];
 
 // ---------- Pilots ----------
 export const PILOTS = {
@@ -261,6 +318,20 @@ export const PILOTS = {
     stats: { atk: 0, def: 0, mob: 0 },
     look: { skin: '#a8a29e', hair: '#1f2937', style: 'short', acc: 'visor', accColor: '#ef4444', suit: '#3f3f46' },
   },
+  luz: {
+    id: 'luz', name: 'Kapitana Luz', rarity: 'SR', title: 'Captain of BRP Balangay', hidden: true,
+    story: 'A former inter-island ferry captain who never lost a passenger to a storm. Now she steers the Bayanihan mothership the same way.',
+    skill: { id: 'none', name: 'Resupply', desc: 'Allies next to her ship repair 10% HP/EN at the start of their turn.' },
+    stats: { atk: 0, def: 0, mob: 0 },
+    look: { skin: '#c68642', hair: '#1f2937', style: 'bun', acc: 'cap', accColor: '#1d4ed8', suit: '#1e3a8a' },
+  },
+  sitan: {
+    id: 'sitan', name: 'Admiral Sitan', rarity: 'SR', title: 'Admiral of the Dilim Fleet', hidden: true,
+    story: 'Datu Dilim\'s fleet admiral, named for the lord of the underworld. He commands from the serpent prow of the Karakoa.',
+    skill: { id: 'none', name: 'Dark Tide', desc: 'Dilim units next to his ship repair 10% HP/EN at the start of their turn.' },
+    stats: { atk: 0, def: 0, mob: 0 },
+    look: { skin: '#78716c', hair: '#0f172a', style: 'short', acc: 'visor', accColor: '#ef4444', suit: '#450a0a' },
+  },
   datuDilim: {
     id: 'datuDilim', name: 'Datu Dilim', rarity: 'SSR', title: 'Lord of the Eclipse', hidden: true,
     story: 'An ancient chieftain who taught the Bakunawa its hunger. Seven moons once lit the islands; he believes that when the last one is eaten, hope — and war — will end forever.',
@@ -303,75 +374,98 @@ export const PULL_COST = { single: 300, ten: 3000 };
 // ---------- Stages ----------
 export const STAGES = [
   {
-    id: 's1', num: 1, name: 'Orbital EDSA Skirmish', sub: 'Tutorial-friendly 3v3 debris-field brawl',
-    desc: 'A Dilim scouting squad is raiding the orbital skyway above EDSA. Jeepney wrecks float everywhere — use them for cover.',
+    id: 's1', num: 1, name: 'Orbital EDSA Skirmish', sub: '3 + flagship vs a Dilim scout carrier',
+    desc: 'A Dilim scouting carrier is raiding the orbital skyway above EDSA. Jeepney wrecks float everywhere — use them for cover. Sink the Karakoa or wipe out its squad.',
     maxDeploy: 3, scale: 1.0,
     map: [
-      '..#.....',
-      '.....#..',
-      '..#....#',
-      '........',
-      '.#...#..',
-      '....#...',
-      '..H.....',
-      '........',
+      '....#.....',
+      '.#.....#..',
+      '...#......',
+      '......#...',
+      '.#........',
+      '....#...#.',
+      '..#.......',
+      '.......#..',
+      '...H......',
+      '..........',
     ],
-    playerSpawns: [[2, 7], [4, 7], [6, 7]],
+    playerSpawns: [[3, 8], [5, 8], [7, 8]],
+    playerShip: [5, 9],
     enemies: [
-      { mecha: 'kapreGrunt', pilot: 'grunt', x: 1, y: 0 },
-      { mecha: 'kapreGrunt', pilot: 'grunt', x: 4, y: 0 },
-      { mecha: 'kapreGrunt', pilot: 'grunt', x: 6, y: 1 },
+      { mecha: 'kapreGrunt', pilot: 'grunt', x: 2, y: 1 },
+      { mecha: 'kapreGrunt', pilot: 'grunt', x: 5, y: 1 },
+      { mecha: 'kapreGrunt', pilot: 'grunt', x: 8, y: 2 },
+    ],
+    enemyShip: [4, 0], enemyShipScale: 0.45,
+    events: [
+      { type: 'reinforce', turn: 3, team: 'enemy', text: 'Dilim reinforcements drop in from the north!', units: [{ mecha: 'kapreGrunt', pilot: 'grunt', x: 0, y: 0 }, { mecha: 'kapreGrunt', pilot: 'grunt', x: 9, y: 0 }] },
     ],
     reward: { capital: 1500, bp: 6, diamonds: 100 }, firstClear: { diamonds: 600, capital: 1000, bp: 6 },
     bg: 'from-indigo-950 via-slate-950 to-slate-900', art: bgStage1Img,
   },
   {
-    id: 's2', num: 2, name: 'Divisoria Underground', sub: '4v5 defense with healing Talyer bays',
-    desc: 'The Dilim Legion is tunneling under the Divisoria market. Hold the line — the Talyer repair bays restore 15% HP/EN each turn.',
-    maxDeploy: 4, scale: 1.15, requires: 's1',
+    id: 's2', num: 2, name: 'Divisoria Underground', sub: 'Collapsing tunnels, healing Talyer bays, enemy flagship',
+    desc: 'The Dilim Legion is tunneling under the Divisoria market. The ceiling is coming down — watch the warnings. Talyer bays restore 15% HP/EN each turn.',
+    maxDeploy: 4, scale: 1.05, requires: 's1',
     map: [
-      '#..##..#',
-      '........',
-      '.#....#.',
-      '...##...',
-      '........',
-      '.#....#.',
-      '..H..H..',
-      '#......#',
+      '#...##...#',
+      '..........',
+      '.#..#...#.',
+      '....##....',
+      '..........',
+      '.#......#.',
+      '...#..#...',
+      '..H....H..',
+      '..........',
+      '#........#',
     ],
-    playerSpawns: [[2, 7], [3, 7], [4, 7], [5, 7]],
+    playerSpawns: [[2, 8], [4, 8], [6, 8], [8, 8]],
+    playerShip: [5, 9],
     enemies: [
-      { mecha: 'kapreGrunt', pilot: 'grunt', x: 1, y: 0 },
-      { mecha: 'kapreGrunt', pilot: 'grunt', x: 6, y: 0 },
-      { mecha: 'tikbalangCustom', pilot: 'grunt', x: 2, y: 0 },
-      { mecha: 'tikbalangCustom', pilot: 'grunt', x: 5, y: 0 },
-      { mecha: 'kapreGrunt', pilot: 'grunt', x: 3, y: 1 },
+      { mecha: 'kapreGrunt', pilot: 'grunt', x: 1, y: 1 },
+      { mecha: 'kapreGrunt', pilot: 'grunt', x: 8, y: 1 },
+      { mecha: 'tikbalangCustom', pilot: 'grunt', x: 3, y: 1 },
+      { mecha: 'tikbalangCustom', pilot: 'grunt', x: 6, y: 1 },
+      { mecha: 'kapreGrunt', pilot: 'grunt', x: 5, y: 2 },
+    ],
+    enemyShip: [4, 0], enemyShipScale: 0.8,
+    events: [
+      { type: 'hazard', turn: 3, name: 'Tunnel Collapse', rows: [4, 5], pct: 25, text: 'The tunnel ceiling is cracking over the middle rows!' },
+      { type: 'reinforce', turn: 5, team: 'enemy', text: 'Tikbalang riders burst out of a side tunnel!', units: [{ mecha: 'tikbalangCustom', pilot: 'grunt', x: 0, y: 3 }, { mecha: 'tikbalangCustom', pilot: 'grunt', x: 9, y: 3 }] },
     ],
     reward: { capital: 2500, bp: 12, diamonds: 150 }, firstClear: { diamonds: 900, capital: 2000, bp: 12 },
     bg: 'from-stone-950 via-slate-950 to-amber-950', art: bgStage2Img,
   },
   {
-    id: 's3', num: 3, name: 'Bakunawa Eclipse', sub: '4v6 boss battle vs. the moon-eater',
-    desc: 'Datu Dilim has awakened the Bakunawa super frame to swallow the moon. Bang every pot you have — and bring it down!',
+    id: 's3', num: 3, name: 'Bakunawa Eclipse', sub: 'Boss battle vs. the moon-eater and the Dilim fleet',
+    desc: 'Datu Dilim has awakened the Bakunawa super frame to swallow the moon, guarded by the Karakoa flagship. Bring down the Bakunawa or sink the Karakoa!',
     maxDeploy: 4, scale: 1.0, requires: 's2',
     map: [
-      '...##...',
-      '.#....#.',
-      '........',
-      '#..H...#',
-      '...#....',
-      '.#....#.',
-      '..H..H..',
-      '........',
+      '....##....',
+      '.#......#.',
+      '..........',
+      '#...H....#',
+      '....#.....',
+      '.#......#.',
+      '..........',
+      '...H..H...',
+      '..........',
+      '..........',
     ],
-    playerSpawns: [[1, 7], [3, 7], [4, 7], [6, 7]],
+    playerSpawns: [[2, 8], [4, 8], [6, 8], [8, 8]],
+    playerShip: [5, 9],
     enemies: [
-      { mecha: 'bakunawa', pilot: 'datuDilim', x: 3, y: 0, boss: true },
-      { mecha: 'manananggal', pilot: 'grunt', x: 5, y: 1 },
-      { mecha: 'tikbalangCustom', pilot: 'grunt', x: 1, y: 1 },
-      { mecha: 'kapreGrunt', pilot: 'grunt', x: 6, y: 2 },
+      { mecha: 'bakunawa', pilot: 'datuDilim', x: 4, y: 1, boss: true },
+      { mecha: 'manananggal', pilot: 'grunt', x: 7, y: 2 },
+      { mecha: 'tikbalangCustom', pilot: 'grunt', x: 2, y: 2 },
       { mecha: 'kapreGrunt', pilot: 'grunt', x: 0, y: 2 },
-      { mecha: 'kapreGrunt', pilot: 'grunt', x: 7, y: 2 },
+      { mecha: 'kapreGrunt', pilot: 'grunt', x: 9, y: 2 },
+    ],
+    enemyShip: [6, 0], enemyShipScale: 1.2,
+    events: [
+      { type: 'hazard', turn: 3, name: 'Eclipse Tide', rows: [6], pct: 20, text: 'The Bakunawa\'s dark tide is rising across the lower field!' },
+      { type: 'reinforce', turn: 4, team: 'enemy', text: 'Datu Dilim: "Mga anak ng gabi, bumangon kayo!"', units: [{ mecha: 'manananggal', pilot: 'grunt', x: 0, y: 5 }, { mecha: 'manananggal', pilot: 'grunt', x: 9, y: 5 }] },
+      { type: 'reinforce', turn: 5, team: 'player', text: 'Reyna Diwata answers the drums and joins the fight!', units: [{ mecha: 'sarimanokZ', pilot: 'diwata', x: 5, y: 8 }] },
     ],
     reward: { capital: 5000, bp: 25, diamonds: 300 }, firstClear: { diamonds: 1500, capital: 4000, bp: 25 },
     bg: 'from-rose-950 via-slate-950 to-black', art: bgStage3Img,
@@ -481,11 +575,15 @@ export const VOICE_LINES = {
   datuDilim: { sortie: 'Kakainin ko ang buwan... at kayo!', attack: 'Walang liwanag para sa inyo!', counter: 'Mangahas kayong lumapit?', evade: 'Ang anino ay hindi natatamaan.', guard: 'Protektahan ang Bakunawa!', hit: 'Isang kagat lang \'yan!', ultimate: 'Pitong buwan ang lumiwanag sa langit noon. Isa-isa silang nilamon ng Bakunawa — at ako ang nagturo sa kanya ng gutom. Kapag wala nang liwanag, wala nang pag-asa. At kapag wala nang pag-asa, wala nang digmaan. Ngayong gabi, ang huling buwan!', chain: 'Higit pa!', destroyed: 'Ang buwan... nakatakas... muli...', victory: 'Dilim ang hari!', defeat: 'Hindi pa ito ang wakas!' },
 };
 
-export const VOICE_PILOTS = ['migo', 'kapitanPula', 'tisoy', 'berto', 'inday', 'diwata', 'kadete', 'grunt', 'datuDilim'];
+VOICE_LINES.luz = { sortie: 'BRP Balangay, angkla taas! Lahat ng pasahero, kapit!', attack: 'Main cannon, putok!', counter: 'Huwag n\'yong gagalawin ang barko ko!', evade: 'Kabig pakaliwa! Iwas!', guard: 'Sa likod ng barko, mga anak!', hit: 'Butas sa kaliwang katig! Tapalan!', ultimate: 'Ilang bagyo na ang nilampasan ng barkong ito. Ni isang pasahero, hindi ko pinabayaan. Bayanihan Mega Cannon — buong lakas!', chain: 'Tuloy ang biyahe!', destroyed: 'Abandon ship... iligtas ang mga piloto...', victory: 'Ligtas tayong lahat. Uwi na tayo.', defeat: 'Atras! Iuwi ang lahat ng makakaya!' };
+VOICE_LINES.sitan = { sortie: 'Karakoa ng Dilim, sumulong! Walang matitira!', attack: 'Lamunin sila ng dilim!', counter: 'Mangahas kayong lapitan ang Karakoa?', evade: 'Masyadong mabagal!', guard: 'Protektahan ang barko!', hit: 'Galos lang sa bakal!', ultimate: 'Ang dagat ay sa Dilim, ang langit ay sa Dilim. Lamon ng Dilim — burahin sila!', chain: 'Higit pa!', destroyed: 'Ang Karakoa... lumulubog...', victory: 'Para kay Datu Dilim!', defeat: 'Umatras ang plota!' };
+
+export const VOICE_PILOTS = ['migo', 'kapitanPula', 'tisoy', 'berto', 'inday', 'diwata', 'luz', 'kadete', 'grunt', 'sitan', 'datuDilim'];
 
 export const VOICE_DEFAULTS = {
   migo: { pitch: 1.0, rate: 1.05 }, kapitanPula: { pitch: 0.85, rate: 1.0 }, tisoy: { pitch: 1.1, rate: 1.1 },
   berto: { pitch: 0.7, rate: 0.9 }, inday: { pitch: 1.45, rate: 1.1 }, diwata: { pitch: 1.2, rate: 0.85 },
+  luz: { pitch: 1.1, rate: 1.0 }, sitan: { pitch: 0.55, rate: 0.9 },
   kadete: { pitch: 1.0, rate: 1.0 }, grunt: { pitch: 0.6, rate: 1.05 }, datuDilim: { pitch: 0.5, rate: 0.8 },
 };
 
@@ -511,13 +609,25 @@ export const ART_CUES = [
   { group: 'Pilots', file: 'pilot_inday_kidlat.png', title: 'Inday Kidlat', prompt: `${PILOT_STYLE}. An energetic Visayan girl pilot, black hair in a bun with a pink lightning clip, purple pilot suit, fist raised, crackling electricity.` },
   { group: 'Pilots', file: 'pilot_reyna_diwata.png', title: 'Reyna Diwata', prompt: `${PILOT_STYLE}. A regal mountain fairy queen pilot, long dark-green hair with leaves, golden tiara, green flowing robe-style pilot suit, calm piercing gaze, floating fireflies.` },
   { group: 'Pilots', file: 'pilot_datu_dilim.png', title: 'Datu Dilim (Villain)', prompt: `${PILOT_STYLE}. A menacing villain chieftain, long white hair, golden crown of crescent moons, dark crimson armor cloak, glowing eyes, eclipse behind him.` },
-  { group: 'Stages', file: 'bg_stage1_orbital_edsa.png', title: 'Stage 1 — Orbital EDSA', prompt: 'Top-down tactical game battle map background, 8x8 hexagon grid friendly, outer space above Metro Manila at night, floating wrecked jeepneys and asteroid chunks, city lights below, stylized painterly, high contrast, no text, no UI.' },
-  { group: 'Stages', file: 'bg_stage2_divisoria_underground.png', title: 'Stage 2 — Divisoria Underground', prompt: 'Top-down tactical game battle map background, 8x8 hexagon grid friendly, underground tunnels beneath a crowded Filipino market, rubble, tarpaulin banners, glowing talyer repair bays with tools, warm amber lights, stylized painterly, no text, no UI.' },
-  { group: 'Stages', file: 'bg_stage3_bakunawa_eclipse.png', title: 'Stage 3 — Bakunawa Eclipse', prompt: 'Top-down tactical game battle map background, 8x8 hexagon grid friendly, dark sea and sky during a blood-red lunar eclipse, a giant serpent silhouette coiling around the moon, floating islands of debris, dramatic red glow, stylized painterly, no text, no UI.' },
+  { group: 'Stages', file: 'bg_stage1_orbital_edsa.png', title: 'Stage 1 — Orbital EDSA', prompt: 'Top-down tactical game battle map background, 10x10 hexagon grid friendly, outer space above Metro Manila at night, floating wrecked jeepneys and asteroid chunks, city lights below, stylized painterly, high contrast, no text, no UI.' },
+  { group: 'Stages', file: 'bg_stage2_divisoria_underground.png', title: 'Stage 2 — Divisoria Underground', prompt: 'Top-down tactical game battle map background, 10x10 hexagon grid friendly, underground tunnels beneath a crowded Filipino market, rubble, tarpaulin banners, glowing talyer repair bays with tools, warm amber lights, stylized painterly, no text, no UI.' },
+  { group: 'Stages', file: 'bg_stage3_bakunawa_eclipse.png', title: 'Stage 3 — Bakunawa Eclipse', prompt: 'Top-down tactical game battle map background, 10x10 hexagon grid friendly, dark sea and sky during a blood-red lunar eclipse, a giant serpent silhouette coiling around the moon, floating islands of debris, dramatic red glow, stylized painterly, no text, no UI.' },
   { group: 'UI & Key Art', file: 'ui_title_keyart.png', title: 'Title Key Art', prompt: 'Epic anime key art for a mobile tactical mecha game: a chrome jeepney robot, an eagle robot and a sarimanok robot posing heroically in space above the Philippine islands, a crimson serpent boss robot looming behind the moon, dynamic lighting, confetti of fiesta banderitas, leave empty space at top for a logo, no text.' },
   { group: 'UI & Key Art', file: 'ui_gacha_card_frames.png', title: 'Gacha Card Frames (R / SR / SSR)', prompt: 'Three vertical trading card frames side by side for a mecha gacha game: silver R frame, gold SR frame with banderitas pattern, prismatic rainbow SSR frame with okir curling ornaments and sparkles, empty center, transparent background, no text.' },
   { group: 'UI & Key Art', file: 'fx_chain_step_banner.png', title: 'CHAIN STEP! Banner', prompt: 'Glowing slanted game banner graphic, cyan and gold energy streaks, speed lines, sparks, empty middle area for the words CHAIN STEP, transparent background.' },
   { group: 'UI & Key Art', file: 'icon_app_512.png', title: 'App Icon', prompt: 'Square mobile game app icon, a chibi chrome jeepney robot head with glowing cyan headlight eyes and tiny chrome horse ornaments, bold outline, starfield background, rounded corners, no text.' },
+  // v1.4.0 — mecha forms, flagships, ship captains. Every sprite here must face LEFT so the game can flip it correctly.
+  { group: 'Mecha Forms', file: 'mecha_jeepney_kaiser_jeep.png', title: 'Jeepney Kaiser — Jeep Mode', prompt: `${STYLE}, facing left. The Jeepney Kaiser transformed into a flying armored jeepney: chrome silver body, red and yellow racing stripes, front grille and round cyan headlights, two tiny chrome horse ornaments on the hood, folded robot arms tucked along the sides, blue thruster flames under the running boards.` },
+  { group: 'Mecha Forms', file: 'mecha_jeepney_kaiser_awakened.png', title: 'Jeepney Kaiser — Awakened', prompt: `${STYLE}, facing left. The Jeepney Kaiser in an awakened overdrive form: chrome armor glowing gold at the seams, headlight eyes blazing white, chrome horse ornaments wreathed in golden fire, fiesta banderitas of light streaming from its back, golden aura.` },
+  { group: 'Mecha Forms', file: 'mecha_agila_mk2_jet.png', title: 'Agila Mk-II — Haring Ibon Jet', prompt: `${STYLE}, facing left. The eagle robot transformed into a sleek fighter jet shaped like a Philippine eagle in flight: white fuselage, brown feathered wings swept wide, gold beak nose cone, shaggy crest fins at the back, yellow thruster trails.` },
+  { group: 'Mecha Forms', file: 'mecha_tikbalang_beast.png', title: 'Tikbalang Custom — Beast Mode', prompt: `${STYLE}, facing left. The horse-headed Tikbalang robot transformed into a galloping four-legged mechanical horse beast: gunmetal armor, spiky silver mane, glowing red eyes, a crackling blue energy whip trailing from its tail.` },
+  { group: 'Mecha Forms', file: 'mecha_tanod_custom_fortress.png', title: 'Tanod Custom — Barangay Fortress', prompt: `${STYLE}, facing left. The navy-and-white Tanod Custom robot crouched in a fortress stance: riot shield made from a chrome jeepney bumper planted in front, a second shield unfolded over its head, shoulder cannons deployed, golden eight-ray sun emblem glowing.` },
+  { group: 'Mecha Forms', file: 'mecha_sarimanok_zeta_awakened.png', title: 'Sarimanok Zeta — Awakened', prompt: `${STYLE}, facing left. The Sarimanok robot in an awakened form: prism plume tail fanned into a huge rainbow halo, wings of crystal light, white armor with gold okir patterns glowing, kampilan saber blazing.` },
+  { group: 'Mecha Forms', file: 'mecha_bakunawa_awakened.png', title: 'Bakunawa — Awakened (Boss)', prompt: `${STYLE}, facing left. The crimson serpent-dragon boss robot in an awakened form: armor cracked open with molten red light, a black eclipse ring burning behind its head, serpent coils of dark energy, crescent shield glowing.` },
+  { group: 'Flagships', file: 'ship_brp_balangay.png', title: 'BRP Balangay (Your Flagship)', prompt: 'Chibi SD space battleship game sprite, facing left, side three-quarter view, a giant flying balangay (ancient Filipino boat) warship with twin outriggers, white and royal-blue hull, golden sun emblem on the bow, rows of lantaka cannons, a big main beam cannon, cyan engine glow, cel-shaded, thick dark outlines, plain transparent background, no text.' },
+  { group: 'Flagships', file: 'ship_karakoa_dilim.png', title: 'Karakoa ng Dilim (Enemy Flagship)', prompt: 'Chibi SD space battleship game sprite, facing left, side three-quarter view, a menacing black-iron karakoa war-boat with a serpent-jaw prow, dark crimson sails of energy, eclipse-glass windows glowing red, spiked outriggers, cel-shaded, thick dark outlines, plain transparent background, no text.' },
+  { group: 'Pilots', file: 'pilot_kapitana_luz.png', title: 'Kapitana Luz (Ship Captain)', prompt: `${PILOT_STYLE}. A calm, confident Filipina ferry captain in her 40s, black hair in a bun, navy captain's cap with a gold anchor, navy uniform, warm determined smile.` },
+  { group: 'Pilots', file: 'pilot_admiral_sitan.png', title: 'Admiral Sitan (Enemy Admiral)', prompt: `${PILOT_STYLE}. A sinister villain admiral with ash-gray skin, slicked black hair, a red glowing visor over his eyes, dark crimson admiral coat with black iron epaulets, cold smirk.` },
 ];
 
 const CUTIN_STYLE = 'dramatic anime mecha cockpit cut-in, wide 16:9 banner crop, pilot shouting toward the viewer, glowing cockpit monitors, diagonal speed lines, intense rim lighting, original character, no text, no logos';

@@ -5,13 +5,14 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { RotateCcw, RotateCw, Maximize, ArrowDownToLine } from 'lucide-react';
 import { MechaSprite } from './Sprite.jsx';
 import { TERRAIN } from './data.js';
-import { GRID, key } from './combat.js';
+import { key } from './combat.js';
 
 // ---- hex geometry (pointy-top, odd-r offset rows) ----
 const R = 0.5;
 const W = Math.sqrt(3) * R;
-const OFF_X = ((GRID - 1) + 0.5) * W / 2;
-const OFF_Z = (GRID - 1) * 0.75 * (2 * R) / 2;
+let OFF_X = (9 + 0.5) * W / 2;
+let OFF_Z = 9 * 0.75 * (2 * R) / 2;
+function setDims(cols, rows) { OFF_X = ((cols - 1) + 0.5) * W / 2; OFF_Z = (rows - 1) * 0.75 * (2 * R) / 2; }
 const HEIGHT = { space: 0.12, debris: 0.42, dock: 0.18 };
 export function tilePos(x, y) { return new THREE.Vector3((x + 0.5 * (y & 1)) * W - OFF_X, 0, y * 1.5 * R - OFF_Z); }
 
@@ -22,18 +23,20 @@ function mechaTexture(look) {
   if (texCache.has(k)) return texCache.get(k);
   // artwork gets a wider canvas so winged / long-weapon art isn't shrunk
   const c = document.createElement('canvas'); c.width = look.img ? 384 : 256; c.height = 256;
+  const glow = (g) => { if (look.aura) { g.shadowColor = '#fbbf24'; g.shadowBlur = 22; } };
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
   const img = new Image();
-  img.onload = () => { const g = c.getContext('2d'); g.clearRect(0, 0, 256, 256); g.drawImage(img, 0, 0, 256, 256); tex.needsUpdate = true; };
+  img.onload = () => { const g = c.getContext('2d'); g.clearRect(0, 0, 256, 256); glow(g); g.drawImage(img, 8, 8, 240, 240); tex.needsUpdate = true; };
   if (look.img) {
     // draw the art directly, letterboxed into the square like the SVG does
     const raw = new Image();
     raw.onload = () => {
-      const g = c.getContext('2d'); const s = Math.min(372 / raw.width, 244 / raw.height);
+      const g = c.getContext('2d'); const s = Math.min(352 / raw.width, 234 / raw.height);
       const w = raw.width * s, h = raw.height * s;
       if (look.hue) g.filter = `hue-rotate(${look.hue}deg)`;
-      g.drawImage(raw, (384 - w) / 2, 256 - h - 6, w, h); tex.needsUpdate = true;
+      glow(g);
+      g.drawImage(raw, (384 - w) / 2, 256 - h - 10, w, h); tex.needsUpdate = true;
     };
     raw.src = look.img;
   } else {
@@ -68,7 +71,7 @@ function hexLine(r, y, color, opacity = 1) {
 
 const FX_COLOR = { beam: 0x22d3ee, shot: 0xfde047, missile: 0xfb923c, slash: 0xf8fafc, mega: 0xf472b6, rainbow: 0xa78bfa };
 
-export default function Board3D({ battle, stage, moveSet, atkSet, threatSet, tgtKey, selUid, onCellClick, fx, onFail }) {
+export default function Board3D({ battle, stage, moveSet, atkSet, threatSet, hazardSet, tgtKey, selUid, onCellClick, fx, onFail }) {
   const mountRef = useRef(null);
   const T = useRef(null); // three.js state
   const [pops, setPops] = useState([]);
@@ -76,6 +79,8 @@ export default function Board3D({ battle, stage, moveSet, atkSet, threatSet, tgt
   // ---------- init ----------
   useEffect(() => {
     const mount = mountRef.current;
+    setDims(battle.map[0].length, battle.map.length);
+    const zs = battle.map.length / 8; // zoom out for bigger maps
     let renderer;
     try {
       renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
@@ -87,12 +92,12 @@ export default function Board3D({ battle, stage, moveSet, atkSet, threatSet, tgt
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x020617);
-    scene.fog = new THREE.Fog(0x020617, 14, 30);
+    scene.fog = new THREE.Fog(0x020617, 14 * zs, 30 * zs);
     const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
-    camera.position.set(0, 7.2, 6.4);
+    camera.position.set(0, 7.2 * zs, 6.4 * zs);
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true; controls.dampingFactor = 0.08;
-    controls.enablePan = false; controls.minDistance = 4.5; controls.maxDistance = 14;
+    controls.enablePan = false; controls.minDistance = 4.5; controls.maxDistance = 14 * zs;
     controls.minPolarAngle = 0.12; controls.maxPolarAngle = 1.3; controls.rotateSpeed = 0.7;
     controls.target.set(0, 0, 0.2); controls.update();
 
@@ -110,7 +115,7 @@ export default function Board3D({ battle, stage, moveSet, atkSet, threatSet, tgt
       const tl = new THREE.TextureLoader();
       tl.load(stage.art, (t) => {
         t.colorSpace = THREE.SRGBColorSpace;
-        const floor = new THREE.Mesh(new THREE.CircleGeometry(16, 64), new THREE.MeshBasicMaterial({ map: t, transparent: true, opacity: 0.55, fog: false }));
+        const floor = new THREE.Mesh(new THREE.CircleGeometry(16 * zs, 64), new THREE.MeshBasicMaterial({ map: t, transparent: true, opacity: 0.55, fog: false }));
         floor.rotation.x = -Math.PI / 2; floor.position.y = -0.6; scene.add(floor);
       });
     } else {
@@ -192,14 +197,15 @@ export default function Board3D({ battle, stage, moveSet, atkSet, threatSet, tgt
       controls.update();
       const tt = now / 1000;
       // overlays pulse
-      Object.values(overlays).forEach((o) => { if (o.kind === 'move') o.ov.material.opacity = 0.35 + Math.sin(tt * 4) * 0.12; });
+      Object.values(overlays).forEach((o) => { if (o.kind === 'move') o.ov.material.opacity = 0.35 + Math.sin(tt * 4) * 0.12; if (o.kind === 'hazard') o.ov.material.opacity = 0.3 + Math.abs(Math.sin(tt * 5)) * 0.3; });
       // units
       units.forEach((u) => {
         const p = u.target;
         u.group.position.lerp(p, Math.min(1, dt * 10));
         if (u.shakeUntil > now) { const k = (u.shakeUntil - now) / 350; u.sprite.position.x = Math.sin(now / 18) * 0.06 * k; } else u.sprite.position.x = 0;
         u.sprite.position.y = 0.02 + (u.idle ? Math.sin(tt * 2.4 + u.phase) * 0.025 : 0);
-        if (u.sel) { u.base.scale.setScalar(1 + Math.sin(tt * 6) * 0.08); u.base.material.opacity = 0.95; } else { u.base.scale.setScalar(1); u.base.material.opacity = 0.7; }
+        const bs = u.ship ? 1.4 : 1;
+        if (u.sel) { u.base.scale.setScalar(bs * (1 + Math.sin(tt * 6) * 0.08)); u.base.material.opacity = 0.95; } else { u.base.scale.setScalar(bs); u.base.material.opacity = 0.7; }
       });
       // transient fx
       for (let i = transient.length - 1; i >= 0; i--) {
@@ -213,7 +219,7 @@ export default function Board3D({ battle, stage, moveSet, atkSet, threatSet, tgt
     raf = requestAnimationFrame(loop);
 
     T.current = {
-      renderer, scene, camera, controls, units, overlays, tileTop, transient, click: () => {},
+      renderer, scene, camera, controls, units, overlays, tileTop, transient, zs, click: () => {},
       project(x, y, lift = 1.1) {
         const p = tilePos(x, y); p.y = (tileTop[key(x, y)] || 0.1) + lift; p.project(camera);
         return { left: (p.x * 0.5 + 0.5) * 100, top: (-p.y * 0.5 + 0.5) * 100 };
@@ -241,14 +247,15 @@ export default function Board3D({ battle, stage, moveSet, atkSet, threatSet, tgt
   useEffect(() => {
     const t = T.current; if (!t) return;
     Object.entries(t.overlays).forEach(([k, o]) => {
-      const kind = moveSet?.has(k) ? 'move' : atkSet?.has(k) ? 'atk' : threatSet?.has(k) ? 'threat' : null;
+      const kind = moveSet?.has(k) ? 'move' : atkSet?.has(k) ? 'atk' : hazardSet?.has(k) ? 'hazard' : threatSet?.has(k) ? 'threat' : null;
       o.kind = kind; o.ov.visible = !!kind;
       if (kind === 'move') o.ov.material.color.setHex(0x0ea5e9);
       if (kind === 'atk') { o.ov.material.color.setHex(0xf43f5e); o.ov.material.opacity = 0.38; }
       if (kind === 'threat') { o.ov.material.color.setHex(0xf43f5e); o.ov.material.opacity = 0.16; }
+      if (kind === 'hazard') { o.ov.material.color.setHex(0xf59e0b); o.ov.material.opacity = 0.42; }
       o.ring.visible = k === tgtKey;
     });
-  }, [moveSet, atkSet, threatSet, tgtKey]);
+  }, [moveSet, atkSet, threatSet, hazardSet, tgtKey]);
 
   // ---------- units ----------
   useEffect(() => {
@@ -262,27 +269,29 @@ export default function Board3D({ battle, stage, moveSet, atkSet, threatSet, tgt
         const base = new THREE.Mesh(new THREE.RingGeometry(0.2, 0.33, 32), new THREE.MeshBasicMaterial({ color: u.team === 'player' ? 0x38bdf8 : 0xf43f5e, transparent: true, opacity: 0.7, side: THREE.DoubleSide, depthWrite: false }));
         base.rotation.x = -Math.PI / 2; base.position.y = 0.01; group.add(base);
         const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: mechaTexture(u.look), transparent: true, alphaTest: 0.05 }));
-        sprite.center.set(0.5, 0.04); const sc = u.boss ? 1.35 : 1.0; sprite.scale.set(sc * (u.look.img ? 1.5 : 1), sc, 1); sprite.userData = { x: u.x, y: u.y };
+        sprite.center.set(0.5, 0.04); const sc = u.ship ? 2.0 : u.boss ? 1.35 : 1.0; sprite.scale.set(sc * (u.look.img ? 1.5 : 1), sc, 1); sprite.userData = { x: u.x, y: u.y };
         group.add(sprite);
         const hc = hpCanvas(u); const htex = new THREE.CanvasTexture(hc);
         const hp = new THREE.Sprite(new THREE.SpriteMaterial({ map: htex, transparent: true, depthTest: false }));
         hp.scale.set(0.62, 0.116, 1); hp.position.y = sc + 0.12; hp.renderOrder = 10; group.add(hp);
         const p = tilePos(u.x, u.y); p.y = t.tileTop[key(u.x, u.y)];
         group.position.copy(p); t.scene.add(group);
-        e = { group, base, sprite, hp, hc, htex, target: p.clone(), shakeUntil: 0, phase: Math.random() * 6, lastHp: -1, lastT: -1 };
+        if (u.ship) base.scale.setScalar(1.4);
+        e = { group, base, sprite, hp, hc, htex, target: p.clone(), shakeUntil: 0, phase: Math.random() * 6, lastHp: -1, lastT: -1, lookKey: JSON.stringify(u.look), ship: u.ship };
         t.units.set(u.uid, e);
       }
       const p = tilePos(u.x, u.y); p.y = t.tileTop[key(u.x, u.y)];
       e.target.copy(p);
       e.sprite.userData = { x: u.x, y: u.y };
       e.group.visible = u.hp > 0;
-      e.idle = !u.acted;
       e.sel = u.uid === selUid;
-      e.sprite.material.color.setHex(u.team === 'player' && u.acted && battle.phase !== 'ENEMY_PHASE' ? 0x5b6475 : 0xffffff);
+      const lk = JSON.stringify(u.look);
+      if (lk !== e.lookKey) { e.lookKey = lk; e.sprite.material.map = mechaTexture(u.look); e.sprite.material.needsUpdate = true; }
+      e.idle = true;
       if (e.lastHp !== u.hp || e.lastT !== u.tension) { drawHp(e.hc, u); e.htex.needsUpdate = true; e.lastHp = u.hp; e.lastT = u.tension; }
     });
     t.units.forEach((e, uid) => { if (!seen.has(uid)) { t.scene.remove(e.group); t.units.delete(uid); } });
-  }, [battle.units, selUid, battle.phase]);
+  }, [battle.units, selUid]);
 
   // ---------- fx: shakes ----------
   const shakeSeen = useRef({});
@@ -336,8 +345,8 @@ export default function Board3D({ battle, stage, moveSet, atkSet, threatSet, tgt
     const c = t.controls, cam = t.camera;
     const off = cam.position.clone().sub(c.target);
     if (kind === 'left' || kind === 'right') { off.applyAxisAngle(new THREE.Vector3(0, 1, 0), (kind === 'left' ? 1 : -1) * Math.PI / 3); cam.position.copy(c.target).add(off); }
-    if (kind === 'reset') { cam.position.set(0, 7.2, 6.4); c.target.set(0, 0, 0.2); }
-    if (kind === 'top') { cam.position.set(c.target.x, 10.5, c.target.z + 0.01); }
+    if (kind === 'reset') { cam.position.set(0, 7.2 * t.zs, 6.4 * t.zs); c.target.set(0, 0, 0.2); }
+    if (kind === 'top') { cam.position.set(c.target.x, 10.5 * t.zs, c.target.z + 0.01); }
     c.update();
   }
 

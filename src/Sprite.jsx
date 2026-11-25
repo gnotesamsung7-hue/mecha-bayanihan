@@ -470,13 +470,35 @@ function Weapon({ id, c, glow }) {
   }
 }
 
+// Placeholder flagship drawing (faces left) until ship art is added in Art Cues.
+function ShipArt({ c, glow, enemy }) {
+  return (
+    <g strokeLinejoin="round">
+      <path d="M8 58 L96 58 L90 64 L14 64 Z" fill={c.s} stroke={O} strokeWidth={1.4} />
+      <path d="M2 74 L98 74 L92 80 L8 80 Z" fill={c.s} stroke={O} strokeWidth={1.4} />
+      <path d="M16 61 L16 77 M84 61 L84 77 M50 61 L50 77" stroke={O} strokeWidth={2} />
+      <path d={enemy ? 'M2 52 L-2 38 L12 46 L20 60 L88 60 L96 50 L98 70 L10 72 Z' : 'M0 48 L14 58 L88 60 L100 50 L96 70 L12 72 Z'} fill={c.p} stroke={O} strokeWidth={1.6} />
+      <path d="M14 64 L94 64" stroke={c.a} strokeWidth={2.5} />
+      <rect x="44" y="34" width="26" height="24" rx="3" fill={c.p} stroke={O} strokeWidth={1.4} />
+      <rect x="48" y="38" width="18" height="6" rx="1.5" fill={c.e} filter={glow} />
+      <path d="M58 34 L58 18 M50 22 L66 22" stroke={O} strokeWidth={2} />
+      {enemy ? <path d="M54 20 L66 14 L64 30 L54 30 Z" fill={c.s} stroke={O} strokeWidth={1} /> : <path d="M60 14 L76 22 L60 30 Z" fill={c.a} stroke={O} strokeWidth={1} />}
+      <rect x="18" y="50" width="22" height="6" rx="2" fill={c.s} stroke={O} strokeWidth={1.2} transform="rotate(-8 29 53)" />
+      <circle cx="16" cy="55" r="2.4" fill={c.e} filter={glow} />
+      {[30, 76].map((x) => <rect key={x} x={x} y="52" width="8" height="5" rx="1" fill={O} />)}
+      <circle cx="26" cy="66" r="4" fill={c.a} stroke={O} strokeWidth={1.2} />
+      <path d="M98 56 L108 54 L108 66 L98 64 Z" fill={c.e} opacity=".85" filter={glow} />
+    </g>
+  );
+}
+
 export function MechaSprite({ look, size = 64, className = '', dim = false, bob = false, flip = false, title }) {
   const uid = useId().replace(/:/g, '');
   const gid = `g${uid}`;
   const glow = `url(#${gid})`;
   const c = look?.colors || { p: '#cbd5e1', s: '#334155', a: '#facc15', e: '#22d3ee' };
   return (
-    <svg viewBox="-4 -8 108 108" width={size} height={size} className={className} style={{ filter: dim ? 'grayscale(1) brightness(.6)' : undefined, overflow: 'visible' }} role="img" aria-label={title || 'mecha'}>
+    <svg viewBox="-4 -8 108 108" width={size} height={size} className={className} style={{ filter: dim ? 'grayscale(1) brightness(.6)' : look?.aura ? 'drop-shadow(0 0 4px #fde047) drop-shadow(0 0 10px #f59e0b)' : undefined, overflow: 'visible' }} role="img" aria-label={title || 'mecha'}>
       <defs>
         <filter id={gid} x="-50%" y="-50%" width="200%" height="200%">
           <feGaussianBlur stdDeviation="1.4" result="b" />
@@ -487,6 +509,8 @@ export function MechaSprite({ look, size = 64, className = '', dim = false, bob 
         <g className={bob ? 'bob' : undefined}>
           {look?.img ? (
             <image href={look.img} x={-4} y={-8} width={108} height={108} preserveAspectRatio="xMidYMid meet" style={look.hue ? { filter: `hue-rotate(${look.hue}deg)` } : undefined} />
+          ) : look?.ship ? (
+            <ShipArt c={c} glow={glow} enemy={look.ship === 'karakoa'} />
           ) : (
             <>
               <Pack id={look?.pack} c={c} glow={glow} />

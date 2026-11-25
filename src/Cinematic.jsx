@@ -32,7 +32,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const faceFlip = (look, side) => (side === 'R') !== (!!look?.img && look?.facing === 'L');
 const FX_SND = { beam: 'beam', shot: 'shot', missile: 'missile', slash: 'slash', mega: 'mega', rainbow: 'rainbow' };
 const FX_COL = { beam: '#22d3ee', shot: '#fde047', missile: '#fb923c', slash: '#f8fafc', mega: '#f472b6', rainbow: '#a78bfa' };
-const LINE_CUE = { main: 'attack', support: 'attack', counter: 'counter' };
+const LINE_CUE = { main: 'attack', support: 'attack', team: 'attack', counter: 'counter' };
 
 function lineText(pilotId, cue) { return resolveLine(pilotId, cue).text; }
 
@@ -73,7 +73,7 @@ export default function Cinematic({ exchange, mode = 'full', stageArt, onDone })
         const shooter = units[s.from];
         const target = units[s.to];
         const sSide = sideOf(s.from);
-        const extra = (s.side === 'support') ? { uid: s.from, side: sSide, kind: 'support' } : null;
+        const extra = (s.side === 'support' || s.side === 'team') ? { uid: s.from, side: sSide, kind: 'support' } : null;
         // ultimate monologue
         if (s.ult) {
           setSt((x) => ({ ...x, idx: i, mono: { pilotId: shooter.pilotId, name: shooter.pilotName, weapon: s.label, text: lineText(shooter.pilotId, 'ultimate') }, dialog: null, label: null, dmg: null, extra: null, boom: false, evade: null }));
@@ -84,7 +84,7 @@ export default function Cinematic({ exchange, mode = 'full', stageArt, onDone })
         }
         // shooter line
         const cue = LINE_CUE[s.side] || 'attack';
-        setSt((x) => ({ ...x, idx: i, mono: null, shooterSide: sSide, extra, phase: 'line', label: s.side === 'counter' ? 'COUNTER!' : s.side === 'support' ? 'SUPPORT ATTACK!' : null, dmg: null, boom: false, evade: null,
+        setSt((x) => ({ ...x, idx: i, mono: null, shooterSide: sSide, extra, phase: 'line', label: s.side === 'counter' ? 'COUNTER!' : s.side === 'support' ? 'SUPPORT ATTACK!' : s.side === 'team' ? 'TEAM-UP!' : null, dmg: null, boom: false, evade: null,
           dialog: { pilotId: shooter.pilotId, name: shooter.pilotName, side: sSide, text: s.ult ? `${s.label}!` : lineText(shooter.pilotId, cue), enemy: shooter.team === 'enemy' } }));
         if (!s.ult) playVoice(shooter.pilotId, cue, { force: true });
         if (!(await wait(T(s.ult ? 450 : 900, 300)))) break;

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
-import { Box, Film, Swords, Shield, Zap, FastForward, Flag, Hourglass, Undo2, Crosshair, Crown, Wrench, X, Check, Trophy, Skull, ScrollText } from 'lucide-react';
+import { Box, Film, Swords, Shield, Zap, FastForward, Flag, Hourglass, Undo2, Crosshair, Crown, Wrench, X, Check, Trophy, Skull, ScrollText, Repeat, Sparkles, Radiation, Users, Ship, AlertTriangle } from 'lucide-react';
 import { MechaSprite, PilotPortrait } from './Sprite.jsx';
 import Cinematic, { buildExchange } from './Cinematic.jsx';
 import Board3D from './Board3D.jsx';
@@ -7,8 +7,9 @@ import { ClassBadge, Bar, hpColor, Btn, Modal, StatPill } from './ui.jsx';
 import { TERRAIN, PILOTS } from './data.js';
 import { sfx, playVoice } from './audio.js';
 import {
-  GRID, key, dist, hexDist, unitAt, byUid, alive, terrainAt, reachable, attackTiles, targetsFrom, bestWeaponFor, weaponUsable, inRange,
-  forecast as computeForecast, resolveCombat, startPhase, aiPlan, moveUnit, tensionLevel, clone, checkEnd,
+  key, dist, hexDist, unitAt, byUid, alive, terrainAt, reachable, attackTiles, targetsFrom, bestWeaponFor, weaponUsable, inRange,
+  forecast as computeForecast, resolveCombat, resolveMap, mapOptions, mapWeapons, unitsOnTiles, aiPlan, moveUnit, tensionLevel, clone, checkEnd,
+  nextActor, beginTurn, endTurn, turnEvents, turnOrder, delayFactor, cpMax, canTransform, canAwaken, transform, awaken, hitChance, baseDamage, TEAM_COST,
 } from './combat.js';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -26,8 +27,7 @@ function stars(x, y) {
 const HEX_W = 100;
 const HEX_R = HEX_W / Math.sqrt(3); // circumradius ≈ 57.7
 const HEX_H = HEX_R * 2;
-const VBW = HEX_W * (GRID + 0.5);
-const VBH = HEX_H + (GRID - 1) * HEX_H * 0.75;
+const boardSize = (b) => [HEX_W * (b.map[0].length + 0.5), HEX_H + (b.map.length - 1) * HEX_H * 0.75];
 function hexCenter(x, y) { return [(x + 0.5 * (y & 1)) * HEX_W + HEX_W / 2, y * HEX_H * 0.75 + HEX_R]; }
 function hexPoints(cx, cy, r) { return [-90, -30, 30, 90, 150, 210].map((a) => { const t = (a * Math.PI) / 180; return `${(cx + r * Math.cos(t)).toFixed(1)},${(cy + r * Math.sin(t)).toFixed(1)}`; }).join(' '); }
 
@@ -36,6 +36,63 @@ function TensionChip({ t }) {
   const cls = lv === 'SUPER' ? 'bg-gradient-to-r from-amber-400 to-fuchsia-500 text-slate-950 animate-pulse' : lv === 'HIGH' ? 'bg-amber-500/80 text-slate-950' : 'bg-slate-700 text-slate-200';
   const label = lv === 'SUPER' ? 'SUPERCHARGED' : lv === 'HIGH' ? 'HIGH' : 'NORMAL';
   return <span className={`text-[9px] font-black px-1.5 py-0.5 rounded tracking-wider ${cls}`}>{label} {t}</span>;
+}
+
+function CpPips({ u }) {
+  const max = cpMax(u);
+  return (
+    <div className="flex items-center gap-1.5 text-[10px] text-slate-400" title="Counter points: each counter-attack costs 1. Refills at the start of the unit's turn (faster for agile units); holding fire gives +1.">
+      <span>Counter</span>
+      {Array.from({ length: max }, (_, i) => <span key={i} className={`w-2.5 h-2.5 rotate-45 border ${i < u.cp ? 'bg-rose-400 border-rose-200' : 'border-slate-600'}`} />)}
+      <span className="tabular-nums">{u.cp}/{max}</span>
+    </div>
+  );
+}
+
+function TurnBar({ b }) {
+  const order = turnOrder(b, 8);
+  const act = b.active ? byUid(b, b.active) : null;
+  const Chip = ({ u, now, me }) => (
+    <div title={`${u.fullName} (${u.pilotName})`} className={`relative shrink-0 rounded-md p-0.5 border-2 ${now ? 'w-12 h-12 sm:w-14 sm:h-14 border-amber-300 shadow-[0_0_14px_rgba(252,211,77,.7)]' : 'w-9 h-9 sm:w-11 sm:h-11'} ${u.team === 'player' ? 'bg-sky-950/80' + (now ? '' : ' border-sky-500/70') : 'bg-rose-950/80' + (now ? '' : ' border-rose-500/70')} ${me ? 'ring-2 ring-amber-300/80 ring-offset-1 ring-offset-slate-950' : ''}`}>
+      <MechaSprite look={u.look} size="100%" />
+      {u.ship && <Ship className="absolute -top-1 -right-1 w-3.5 h-3.5 text-amber-300" />}
+      {u.boss && <Crown className="absolute -top-1 -right-1 w-3.5 h-3.5 text-amber-300" />}
+    </div>
+  );
+  return (
+    <div className="flex items-center gap-1.5 bg-slate-950/85 rounded-xl hud-border px-2 py-1.5 overflow-x-auto" data-turnbar>
+      <div className="text-[9px] font-black tracking-widest text-amber-300 leading-tight shrink-0 w-9">TURN<br />ORDER</div>
+      {act && <><Chip u={act} now /><span className="text-[9px] font-black text-amber-300 shrink-0">NOW ›</span></>}
+      {order.map((uid, i) => { const u = byUid(b, uid); return u ? <Chip key={`${uid}-${i}`} u={u} me={uid === b.active} /> : null; })}
+    </div>
+  );
+}
+
+function MapCard({ b, aim, onConfirm, onCancel }) {
+  const att = byUid(b, b.active); const w = att.weapons[aim.wIdx];
+  const opt = aim.opts.find((o) => o.id === aim.optId);
+  const hits = opt ? unitsOnTiles(b, opt.tiles, att.team === 'player' ? 'enemy' : 'player') : [];
+  return (
+    <div className="p-2.5 space-y-2">
+      <div className="flex items-center justify-between">
+        <div className="text-[11px] font-black tracking-[0.2em] text-orange-300 flex items-center gap-1"><Radiation size={13} /> MAP WEAPON</div>
+        <button onClick={onCancel} className="text-slate-400 hover:text-white"><X size={16} /></button>
+      </div>
+      <div className="text-sm font-bold text-white">{w.name}</div>
+      <div className="text-[11px] text-slate-400">Power {w.power} · EN {w.en} · {w.map === 'line' ? `straight line, ${w.len} tiles` : w.map === 'cone' ? `cone, ${w.len} tiles` : 'burst'} · hits every enemy in the area · no counters</div>
+      {!opt ? <div className="text-xs text-amber-200 bg-amber-500/10 rounded px-2 py-1.5">Tap a red tile on the board to aim.</div> : (
+        <div className="space-y-1">
+          {hits.length ? hits.map((t) => (
+            <div key={t.uid} className="text-[11px] flex justify-between bg-rose-950/50 rounded px-2 py-1"><span className="text-rose-200">{t.name}</span><span className="tabular-nums text-slate-300">{hitChance(b, att, t, w)}% · ~{baseDamage(b, att, t, w)} dmg{baseDamage(b, att, t, w) >= t.hp ? ' · LETHAL' : ''}</span></div>
+          )) : <div className="text-xs text-slate-400">No enemies in this area.</div>}
+        </div>
+      )}
+      <div className="flex gap-2">
+        <Btn variant="amber" className="flex-1" onClick={onConfirm} disabled={!opt || !hits.length}><Radiation size={15} /> Fire ({hits.length} target{hits.length === 1 ? '' : 's'})</Btn>
+        <Btn variant="slate" onClick={onCancel}>Cancel</Btn>
+      </div>
+    </div>
+  );
 }
 
 function UnitCard({ u, b }) {
@@ -50,6 +107,9 @@ function UnitCard({ u, b }) {
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className={`font-bold ${u.team === 'player' ? 'text-sky-200' : 'text-rose-200'}`}>{u.fullName}</span>
             {u.boss && <span className="text-[9px] bg-rose-600 px-1 rounded font-black">BOSS</span>}
+            {u.ship && <span className="text-[9px] bg-amber-600 px-1 rounded font-black">FLAGSHIP</span>}
+            {u.awakened && <span className="text-[9px] bg-gradient-to-r from-amber-400 to-fuchsia-500 text-slate-950 px-1 rounded font-black">AWAKENED</span>}
+            {u.mode > 0 && <span className="text-[9px] bg-cyan-700 px-1 rounded font-black">{u.modes[u.mode].name.toUpperCase()}</span>}
           </div>
           <div className="flex gap-1 items-center mt-0.5"><ClassBadge cls={u.cls} small /><TensionChip t={u.tension} /></div>
           <div className="flex items-center gap-1.5 mt-1">
@@ -61,6 +121,8 @@ function UnitCard({ u, b }) {
       <Bar value={u.hp} max={u.maxHp} color={hpColor(u.hp, u.maxHp)} label="HP" />
       <Bar value={u.en} max={u.maxEn} color="bg-sky-400" label="EN" />
       <Bar value={u.tension - 100} max={100} color={u.tension >= 200 ? 'bg-fuchsia-400' : 'bg-amber-400'} label={`Tension ${u.tension}/200`} />
+      <CpPips u={u} />
+      {u.ship && <div className="text-[10px] text-amber-200">🚢 Allies next to this ship repair 10% HP/EN on their turn. {u.team === 'player' ? 'If it sinks, the battle is lost.' : 'Sink it to win!'}</div>}
       <div className="grid grid-cols-4 gap-1">
         <StatPill label="ATK" value={u.atk} /><StatPill label="DEF" value={u.def} /><StatPill label="MOB" value={u.mob} /><StatPill label="MOVE" value={u.move} />
       </div>
@@ -80,8 +142,8 @@ function UnitCard({ u, b }) {
   );
 }
 
-function ForecastCard({ b, fc, onWeapon, onConfirm, onCancel, enemyPreview }) {
-  const f = useMemo(() => computeForecast(b, fc.attUid, fc.tgtUid, fc.wIdx), [b, fc]);
+function ForecastCard({ b, fc, onWeapon, onTeam, onConfirm, onCancel, enemyPreview }) {
+  const f = useMemo(() => computeForecast(b, fc.attUid, fc.tgtUid, fc.wIdx, fc.team || null), [b, fc]);
   const { att, tgt } = f;
   const d = dist(att, tgt);
   const killHint = f.lethal;
@@ -110,6 +172,7 @@ function ForecastCard({ b, fc, onWeapon, onConfirm, onCancel, enemyPreview }) {
       {!enemyPreview && (
         <div className="flex flex-wrap gap-1">
           {att.weapons.map((w, i) => {
+            if (w.map) return null;
             const ok = weaponUsable(att, w) && inRange(w, d);
             return (
               <button key={i} disabled={!ok} onClick={() => { sfx('beep'); onWeapon(i); }}
@@ -127,11 +190,20 @@ function ForecastCard({ b, fc, onWeapon, onConfirm, onCancel, enemyPreview }) {
       </div>
       <div className="space-y-1 text-[11px]">
         <div className={`rounded px-2 py-1 ${f.counter ? 'bg-rose-950/50 text-rose-200' : 'bg-slate-800/50 text-slate-400'}`}>
-          ↩ Counter: {f.counter ? `${f.counter.weapon.name} — ${f.counter.hit}% / ${f.counter.dmg} dmg` : 'No counter-attack'}
+          ↩ Counter: {f.counter ? `${f.counter.weapon.name} — ${f.counter.hit}% / ${f.counter.dmg} dmg (uses 1 of ${tgt.cp} counter pts)` : tgt.cp <= 0 ? 'None — target is out of counter points!' : 'No counter-attack'}
         </div>
-        <div className={`rounded px-2 py-1 ${f.support ? 'bg-emerald-950/50 text-emerald-200' : 'bg-slate-800/50 text-slate-500'}`}>
-          ⚡ Support Attack: {f.support ? `${f.support.unit.name} — ${f.support.hit}% / ${f.support.dmg} dmg` : 'none in 2 tiles'}
-        </div>
+        {f.team ? (
+          <div className="rounded px-2 py-1 bg-gradient-to-r from-emerald-900/70 to-cyan-900/70 text-emerald-100 font-bold">🤝 TEAM-UP: {f.team.name} — {f.team.unit.name} {f.team.hit}% / {f.team.dmg} dmg{f.team.bond ? ' (bond +20%)' : ''}</div>
+        ) : (
+          <div className={`rounded px-2 py-1 ${f.support ? 'bg-emerald-950/50 text-emerald-200' : 'bg-slate-800/50 text-slate-500'}`}>
+            ⚡ Support Attack: {f.support ? `${f.support.unit.name} — ${f.support.hit}% / ${f.support.dmg} dmg` : 'none in 2 tiles'}
+          </div>
+        )}
+        {!enemyPreview && f.teamAvail && (
+          <button onClick={() => { sfx('beep'); onTeam(f.team ? null : f.teamAvail.unit.uid); }} className={`w-full rounded px-2 py-1.5 border font-bold ${f.team ? 'border-emerald-300 bg-emerald-500/25 text-emerald-100' : 'border-emerald-500/50 bg-slate-800/60 text-emerald-200'}`}>
+            <Users size={12} className="inline mr-1" />{f.team ? 'Team-Up ON — tap to cancel' : `Team-Up with ${f.teamAvail.unit.name}: ${f.teamAvail.name} (−${TEAM_COST} Tension each)`}
+          </button>
+        )}
         <div className={`rounded px-2 py-1 ${f.supportDef ? 'bg-sky-950/50 text-sky-200' : 'bg-slate-800/50 text-slate-500'}`}>
           🛡 Support Defense: {f.supportDef ? `${f.supportDef.unit.name} intercepts (takes ~${f.supportDef.dmg})` : 'none'}
         </div>
@@ -151,13 +223,16 @@ export default function Battle({ stage, initial, onResult, onExit, initialAuto =
   const [battle, setBattleState] = useState(initial);
   const bRef = useRef(initial);
   const setBattle = useCallback((b) => { bRef.current = b; setBattleState(b); }, []);
-  const [sel, setSel] = useState(null); // selected uid
+  const [sel, setSel] = useState(null); // selected uid (the active unit on your turn)
   const [inspect, setInspect] = useState(null);
-  const [fc, setFc] = useState(null); // {attUid,tgtUid,wIdx}
+  const [fc, setFc] = useState(null); // {attUid,tgtUid,wIdx,team}
   const [enemyFc, setEnemyFc] = useState(null);
+  const [mapAim, setMapAim] = useState(null); // {wIdx, opts, optId}
+  const [areaFx, setAreaFx] = useState(null); // tiles flashing for an area attack
   const [auto, setAuto] = useState(initialAuto);
   const autoRef = useRef(initialAuto);
   const busy = useRef(false);
+  const advancing = useRef(false);
   const mounted = useRef(true);
   const [fxState, setFx] = useState({ beams: [], pops: [], booms: [], shakes: {}, flash: 0, banner: null });
   const fxId = useRef(1);
@@ -169,8 +244,9 @@ export default function Battle({ stage, initial, onResult, onExit, initialAuto =
   useEffect(() => { cutinsRef.current = cutins; }, [cutins]);
   const logRef = useRef(null);
   const resultHandled = useRef(false);
+  const [tick, setTick] = useState(0);
 
-  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
+  useEffect(() => { mounted.current = true; window.__mbtBattle = () => bRef.current; return () => { mounted.current = false; delete window.__mbtBattle; }; }, []);
   useEffect(() => { autoRef.current = auto; }, [auto]);
   useEffect(() => {
     const onBack = () => { if (!rewards && !cutin) setConfirmRetreat((v) => !v); };
@@ -182,10 +258,18 @@ export default function Battle({ stage, initial, onResult, onExit, initialAuto =
   const spd = () => (autoRef.current ? 0.5 : 1);
   const wait = (ms) => sleep(ms * spd());
 
-  // sortie voice
+  // sortie voice, turn-1 events, then start the timeline
   useEffect(() => {
     const first = initial.units.find((u) => u.team === 'player');
-    const t = setTimeout(() => { if (first) playVoice(first.pilotId, 'sortie'); showBanner('PLAYER PHASE', 'player'); }, 400);
+    const t = setTimeout(async () => {
+      if (!mounted.current) return;
+      if (first) playVoice(first.pilotId, 'sortie');
+      showBanner('BATTLE START', 'player');
+      await sleep(1100);
+      const te = turnEvents(bRef.current, stage, 0, 1);
+      await play(te.events, bRef.current, te.battle);
+      advance();
+    }, 400);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -232,7 +316,16 @@ export default function Battle({ stage, initial, onResult, onExit, initialAuto =
         if (ev.t !== 'log') continue;
       }
       switch (ev.t) {
-        case 'banner': showBanner(ev.text, ev.kind); if (ev.kind === 'ult') { sfx('powerup'); await wait(700); } else { sfx('chain'); await wait(900); } break;
+        case 'banner':
+          showBanner(ev.text, ev.kind);
+          if (ev.kind === 'ult' || ev.kind === 'form') { sfx('powerup'); await wait(700); }
+          else if (ev.kind === 'map') { sfx('mega'); flash(); await wait(900); }
+          else if (ev.kind === 'warn' || ev.kind === 'enemy' || ev.kind === 'player') { sfx('phase'); await wait(1000); }
+          else { sfx('chain'); await wait(900); }
+          break;
+        case 'area': setAreaFx(ev.tiles); flash(); await wait(450); setTimeout(() => mounted.current && setAreaFx(null), 600); break;
+        case 'spawn': addPop(ev.uid, 'REINFORCEMENT!', 'tension'); sfx('select'); await wait(350); break;
+        case 'pop': addPop(ev.uid, ev.text, ev.kind); break;
         case 'attack': {
           sfx(FX_SOUND[ev.fx] || 'beam'); addBeam(ev.from, ev.to, ev.fx);
           if (ev.fx === 'mega' || ev.fx === 'rainbow') flash();
@@ -250,7 +343,6 @@ export default function Battle({ stage, initial, onResult, onExit, initialAuto =
         case 'destroy': addBoom(ev.uid); sfx('explosion'); await wait(520); break;
         case 'tension': if (ev.level === 'SUPER') { addPop(ev.uid, 'SUPERCHARGED!', 'super'); sfx('powerup'); await wait(300); } else if (ev.level === 'HIGH') { addPop(ev.uid, 'TENSION HIGH', 'tension'); } break;
         case 'voice': {
-          const u = byUid(bRef.current, ev.uid || '') || null; void u;
           if (ev.team === 'enemy' && !ev.boss && ev.cue !== 'destroyed') break;
           playVoice(ev.pilotId, ev.cue); break;
         }
@@ -270,9 +362,9 @@ export default function Battle({ stage, initial, onResult, onExit, initialAuto =
     resultHandled.current = true;
     const nb = { ...b, phase: result, result };
     setBattle(nb);
-    setSel(null); setFc(null); setEnemyFc(null);
+    setSel(null); setFc(null); setEnemyFc(null); setMapAim(null);
     sfx(result === 'VICTORY' ? 'victory' : 'defeat');
-    const lead = b.units.find((u) => u.team === 'player' && u.hp > 0) || b.units.find((u) => u.team === 'player');
+    const lead = b.units.find((u) => u.team === 'player' && u.hp > 0 && !u.ship) || b.units.find((u) => u.team === 'player');
     if (lead) setTimeout(() => playVoice(lead.pilotId, result === 'VICTORY' ? 'victory' : 'defeat', { force: true }), 600);
     showBanner(result === 'VICTORY' ? 'MISSION COMPLETE' : 'MISSION FAILED', result === 'VICTORY' ? 'player' : 'enemy');
     const r = onResult(result, nb);
@@ -280,9 +372,9 @@ export default function Battle({ stage, initial, onResult, onExit, initialAuto =
   }
 
   // ---------- attack execution ----------
-  async function executeAttack(attUid, tgtUid, wIdx) {
+  async function executeAttack(attUid, tgtUid, wIdx, teamUid = null) {
     const pre = bRef.current;
-    const res = resolveCombat(pre, attUid, tgtUid, wIdx);
+    const res = resolveCombat(pre, attUid, tgtUid, wIdx, Math.random, teamUid);
     const mode = cutinsRef.current === 'off' ? 'off' : (autoRef.current || cutinsRef.current === 'short') ? 'short' : 'full';
     const exchange = mode !== 'off' ? buildExchange(res.events, pre) : null;
     if (exchange && mounted.current) {
@@ -292,152 +384,164 @@ export default function Battle({ stage, initial, onResult, onExit, initialAuto =
     const fin = await play(res.events, pre, res.battle, !!exchange);
     return { fin, chained: res.chained, result: res.battle.result };
   }
+  async function executeMap(attUid, wIdx, tiles) {
+    const pre = bRef.current;
+    const res = resolveMap(pre, attUid, wIdx, tiles);
+    await play(res.events, pre, res.battle);
+    return res.battle.result;
+  }
 
-  // ---------- AI team turn ----------
-  async function runTeam(team) {
-    let guard = 0;
-    while (mounted.current && guard++ < 40) {
-      const b = bRef.current;
-      if (b.result || checkEnd(b)) return checkEnd(b);
-      const foes = alive(b).filter((u) => u.team !== team);
-      const units = alive(b).filter((u) => u.team === team && !u.acted)
-        .sort((p, q) => Math.min(...foes.map((f) => dist(p, f))) - Math.min(...foes.map((f) => dist(q, f))));
-      if (!units.length) return null;
-      if (team === 'player' && !autoRef.current) return null; // auto turned off mid-way
-      const u = units[0];
-      setSel(u.uid);
+  // ---------- AI turn for one unit ----------
+  async function runAI(uid) {
+    for (let step = 0; step < 3 && mounted.current; step++) {
+      let b = bRef.current; let u = byUid(b, uid);
+      if (!u || u.hp <= 0) return checkEnd(b);
+      setSel(uid);
+      if (canAwaken(u)) { const aw = awaken(b, uid); await play(aw.events, b, aw.battle); b = bRef.current; u = byUid(b, uid); }
       const plan = aiPlan(b, u);
       if (plan.x !== u.x || plan.y !== u.y) {
         sfx('move');
         setBattle(moveUnit(bRef.current, u.uid, plan.x, plan.y));
         await wait(380);
       }
-      if (plan.targetUid) {
-        const fcObj = { attUid: u.uid, tgtUid: plan.targetUid, wIdx: plan.wIdx };
-        setEnemyFc(fcObj);
-        await wait(team === 'enemy' ? 750 : 450);
-        setEnemyFc(null);
-        const { result } = await executeAttack(u.uid, plan.targetUid, plan.wIdx);
-        if (result) return result;
-      } else {
-        const nb = clone(bRef.current); const nu = byUid(nb, u.uid); nu.acted = true; nu.moved = true; setBattle(nb);
-        await wait(150);
+      if (plan.map) {
+        setAreaFx(plan.map.tiles); showBanner('MAP WEAPON INCOMING!', u.team === 'enemy' ? 'enemy' : 'map');
+        await wait(u.team === 'enemy' ? 1000 : 600);
+        setAreaFx(null);
+        return await executeMap(u.uid, plan.map.wIdx, plan.map.tiles);
       }
+      if (!plan.targetUid) return null;
+      const fcObj = { attUid: u.uid, tgtUid: plan.targetUid, wIdx: plan.wIdx };
+      setEnemyFc(fcObj);
+      await wait(u.team === 'enemy' ? 750 : 450);
+      setEnemyFc(null);
+      const { result, chained } = await executeAttack(u.uid, plan.targetUid, plan.wIdx);
+      if (result) return result;
+      if (!chained) return null;
     }
     return null;
   }
 
-  async function endPhase() {
-    if (busy.current) return;
-    busy.current = true;
-    setSel(null); setFc(null); setInspect(null);
+  // ---------- timeline: run turns until it's your move ----------
+  async function advance() {
+    if (advancing.current || resultHandled.current) return;
+    advancing.current = true; busy.current = true;
+    setSel(null); setFc(null); setMapAim(null);
     try {
-      sfx('phase');
-      let b = { ...bRef.current, phase: 'ENEMY_PHASE', log: [...bRef.current.log, { text: `Turn ${bRef.current.turn} — Enemy Phase`, kind: 'sys' }] };
-      setBattle(b);
-      showBanner('ENEMY PHASE', 'enemy');
-      await wait(1000);
-      const sp = startPhase(bRef.current, 'enemy');
-      await play(sp.events, bRef.current, { ...sp.battle, phase: 'ENEMY_PHASE' });
-      const r = await runTeam('enemy');
-      if (r) { finish(r, bRef.current); return; }
-      setSel(null);
-      const sp2 = startPhase({ ...bRef.current, turn: bRef.current.turn + 1 }, 'player');
-      const nb = { ...sp2.battle, phase: 'PLAYER_IDLE', log: [...sp2.battle.log, { text: `Turn ${sp2.battle.turn} — Player Phase`, kind: 'sys' }] };
-      sfx('phase');
-      showBanner('PLAYER PHASE', 'player');
-      await play(sp2.events, bRef.current, nb);
-      setBattle({ ...bRef.current, phase: 'PLAYER_IDLE' });
+      for (let guard = 0; guard < 500 && mounted.current; guard++) {
+        let end = checkEnd(bRef.current); if (end) { finish(end, bRef.current); return; }
+        const nx = nextActor(bRef.current);
+        setBattle(nx.battle);
+        if (nx.battle.turn > nx.prevTurn) {
+          const te = turnEvents(bRef.current, stage, nx.prevTurn, nx.battle.turn);
+          await play(te.events, bRef.current, te.battle);
+          end = checkEnd(bRef.current); if (end) { finish(end, bRef.current); return; }
+        }
+        const bt = beginTurn(bRef.current, nx.uid);
+        await play(bt.events, bRef.current, bt.battle);
+        const u = byUid(bRef.current, nx.uid);
+        if (u.team === 'player' && !autoRef.current) {
+          sfx('select');
+          setSel(u.uid); setInspect(null);
+          setBattle({ ...bRef.current, phase: 'UNIT_SELECTED' });
+          return; // wait for the player
+        }
+        setBattle({ ...bRef.current, phase: u.team === 'enemy' ? 'ENEMY_TURN' : 'ANIMATING' });
+        await wait(u.team === 'enemy' ? 350 : 150);
+        const r = await runAI(u.uid);
+        if (r) { finish(r, bRef.current); return; }
+        setBattle(endTurn(bRef.current, u.uid));
+        setSel(null);
+      }
     } finally {
-      busy.current = false;
+      advancing.current = false; busy.current = false;
       if (mounted.current) setTick((t) => t + 1);
     }
   }
 
-  // auto-battle driver
-  const [tick, setTick] = useState(0);
-  const autoRunning = useRef(false);
+  function endPlayerTurn() {
+    const b = bRef.current; if (!b.active) return;
+    setFc(null); setMapAim(null); setSel(null);
+    setBattle({ ...endTurn(b, b.active), phase: 'IDLE' });
+    setTimeout(() => advance(), 250);
+  }
+
+  // auto-battle: take over your current unit, then keep going
+  async function autoTakeover() {
+    if (busy.current) return;
+    busy.current = true;
+    const uid = bRef.current.active;
+    setFc(null); setMapAim(null); setInspect(null);
+    setBattle({ ...bRef.current, phase: 'ANIMATING' });
+    let r = null;
+    try { r = await runAI(uid); } finally { busy.current = false; }
+    if (!mounted.current) return;
+    if (r) { finish(r, bRef.current); return; }
+    setBattle(endTurn(bRef.current, uid));
+    advance();
+  }
   useEffect(() => {
-    if (!auto || busy.current || autoRunning.current || bRef.current.result) return;
-    if (!['PLAYER_IDLE', 'UNIT_SELECTED', 'TARGETING'].includes(bRef.current.phase)) return;
-    autoRunning.current = true;
-    (async () => {
-      let r = null;
-      try {
-        busy.current = true;
-        setFc(null); setInspect(null);
-        setBattle({ ...bRef.current, phase: 'ANIMATING' });
-        r = await runTeam('player');
-      } finally { busy.current = false; }
-      try {
-        if (!mounted.current) return;
-        if (r) { finish(r, bRef.current); return; }
-        setSel(null);
-        if (!autoRef.current) { setBattle({ ...bRef.current, phase: 'PLAYER_IDLE' }); return; }
-        await endPhase();
-      } finally { autoRunning.current = false; if (mounted.current) setTick((t) => t + 1); }
-    })();
+    if (!auto) return;
+    const b = bRef.current;
+    if (busy.current || advancing.current || b.result) return;
+    const a = b.active && byUid(b, b.active);
+    if (a && a.team === 'player' && ['UNIT_SELECTED', 'TARGETING', 'MAPAIM'].includes(b.phase)) autoTakeover();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [auto, tick, battle.phase]);
+  }, [auto, tick]);
 
   // ---------- player interaction ----------
-  const selUnit = sel ? byUid(battle, sel) : null;
-  const playerControl = !auto && !busy.current && ['PLAYER_IDLE', 'UNIT_SELECTED', 'TARGETING'].includes(battle.phase);
-  const moveSet = useMemo(() => (selUnit && selUnit.team === 'player' && !selUnit.moved && playerControl && !fc ? reachable(battle, selUnit) : null), [battle, selUnit, playerControl, fc]);
+  const activeUnit = battle.active ? byUid(battle, battle.active) : null;
+  const playerControl = !auto && !busy.current && !!activeUnit && activeUnit.team === 'player' && ['UNIT_SELECTED', 'TARGETING', 'MAPAIM'].includes(battle.phase);
+  const selUnit = playerControl ? activeUnit : (sel ? byUid(battle, sel) : null);
+  const moveSet = useMemo(() => (playerControl && !selUnit.moved && !fc && !mapAim ? reachable(battle, selUnit) : null), [battle, selUnit, playerControl, fc, mapAim]);
   const atkSet = useMemo(() => {
-    if (!selUnit || selUnit.team !== 'player' || !playerControl) return null;
+    if (areaFx) return new Set(areaFx);
+    if (mapAim) { const o = mapAim.opts.find((x) => x.id === mapAim.optId); return o ? new Set(o.tiles) : null; }
+    if (!playerControl) return null;
     if (!selUnit.moved && moveSet) { const s = attackTiles(battle, selUnit, [...moveSet.keys()]); moveSet.forEach((_, k) => s.delete(k)); return s; }
     return attackTiles(battle, selUnit, [key(selUnit.x, selUnit.y)]);
-  }, [battle, selUnit, moveSet, playerControl]);
+  }, [battle, selUnit, moveSet, playerControl, mapAim, areaFx]);
   const inspectUnit = inspect ? byUid(battle, inspect) : null;
   const threatSet = useMemo(() => {
+    if (mapAim) return new Set(mapAim.opts.flatMap((o) => (mapAim.opts[0].center ? [o.center] : o.tiles)));
     if (!inspectUnit || inspectUnit.hp <= 0 || inspectUnit.team !== 'enemy') return null;
-    const mv = reachable(battle, inspectUnit);
+    const mv = inspectUnit.boss ? new Map([[key(inspectUnit.x, inspectUnit.y), 0]]) : reachable(battle, inspectUnit);
     return attackTiles(battle, inspectUnit, [...mv.keys()]);
-  }, [battle, inspectUnit]);
+  }, [battle, inspectUnit, mapAim]);
+  const hazardSet = useMemo(() => (battle.warn?.length ? new Set(battle.warn) : null), [battle.warn]);
 
   function setPhase(p) { setBattle({ ...bRef.current, phase: p }); }
 
-  function selectUnit(u) {
-    sfx('select');
-    setSel(u.uid); setFc(null); setInspect(null);
-    setPhase('UNIT_SELECTED');
-  }
-  function deselect() { setSel(null); setFc(null); setPhase('PLAYER_IDLE'); }
-
   function openForecast(att, tgt) {
     const d = dist(att, tgt);
-    let wIdx = bestWeaponFor(att, d, 'cheap');
+    const wIdx = bestWeaponFor(att, d, 'cheap');
     if (wIdx < 0) return;
     sfx('beep');
-    setFc({ attUid: att.uid, tgtUid: tgt.uid, wIdx });
+    setFc({ attUid: att.uid, tgtUid: tgt.uid, wIdx, team: null });
     setPhase('TARGETING');
   }
 
   function onCellClick(x, y) {
-    if (!playerControl) return;
     const b = bRef.current;
     const u = unitAt(b, x, y);
-    const S = sel ? byUid(b, sel) : null;
+    if (!playerControl) { if (u) { sfx('beep'); setInspect(u.uid); } return; }
+    const S = byUid(b, b.active);
+    const k = key(x, y);
+    if (mapAim) {
+      const opt = mapAim.opts.find((o) => (o.center ? o.center === k : o.tiles.includes(k)));
+      if (opt) { sfx('beep'); setMapAim({ ...mapAim, optId: opt.id }); }
+      return;
+    }
     if (fc) { // clicking elsewhere while forecasting
-      if (u && u.team === 'enemy' && S && targetsFrom(b, S, S.x, S.y).some((e) => e.uid === u.uid)) { openForecast(S, u); return; }
-      setFc(null); if (S && S.moved) setPhase('TARGETING'); else if (S) setPhase('UNIT_SELECTED'); return;
+      if (u && u.team !== S.team && targetsFrom(b, S, S.x, S.y).some((e) => e.uid === u.uid)) { openForecast(S, u); return; }
+      setFc(null); setPhase(S.moved ? 'TARGETING' : 'UNIT_SELECTED'); return;
     }
-    if (!S || S.acted) {
-      if (u && u.team === 'player' && !u.acted) return selectUnit(u);
-      if (u) { sfx('beep'); setInspect(u.uid); setSel(null); setPhase('PLAYER_IDLE'); return; }
-      setInspect(null); return;
-    }
-    // S selected
     if (u && u.uid === S.uid) {
       if (!S.moved) { const nb = moveUnit(b, S.uid, S.x, S.y); setBattle({ ...nb, phase: 'TARGETING' }); sfx('beep'); }
       return;
     }
-    if (u && u.team === 'player' && !u.acted) {
-      if (S.moved) return; // must finish this unit first
-      return selectUnit(u);
-    }
-    if (u && u.team === 'enemy') {
+    if (u && u.team === S.team) { sfx('beep'); setInspect(u.uid); return; }
+    if (u) {
       if (targetsFrom(b, S, S.x, S.y).some((e) => e.uid === u.uid)) return openForecast(S, u);
       if (!S.moved && moveSet) {
         // auto-path: best tile to strike from
@@ -460,58 +564,79 @@ export default function Battle({ stage, initial, onResult, onExit, initialAuto =
       }
       sfx('beep'); setInspect(u.uid); return;
     }
-    if (!S.moved && moveSet && moveSet.has(key(x, y))) {
+    if (!S.moved && moveSet && moveSet.has(k)) {
       sfx('move');
       const nb = moveUnit(b, S.uid, x, y);
       setBattle({ ...nb, phase: 'TARGETING' });
+      setInspect(null);
       return;
     }
-    if (!S.moved) { sfx('cancel'); deselect(); }
+    setInspect(null);
   }
 
   async function confirmAttack() {
     if (!fc || busy.current) return;
     busy.current = true;
-    const { attUid, tgtUid, wIdx } = fc;
+    const { attUid, tgtUid, wIdx, team } = fc;
     setFc(null);
     setPhase('ANIMATING');
     let out;
-    try { out = await executeAttack(attUid, tgtUid, wIdx); } finally { busy.current = false; }
+    try { out = await executeAttack(attUid, tgtUid, wIdx, team); } finally { busy.current = false; }
     if (!mounted.current) return;
     if (out.result) { finish(out.result, bRef.current); return; }
-    if (out.chained) { setSel(attUid); setBattle({ ...bRef.current, phase: 'UNIT_SELECTED' }); return; }
-    afterUnitDone();
+    if (out.chained) { setBattle({ ...bRef.current, phase: 'UNIT_SELECTED' }); setTick((t) => t + 1); return; }
+    endPlayerTurn();
   }
 
-  function afterUnitDone() {
-    setSel(null);
+  function startMapAim(wIdx) {
+    const b = bRef.current; const S = byUid(b, b.active);
+    sfx('beep'); setFc(null); setInspect(null);
+    setMapAim({ wIdx, opts: mapOptions(b, S, S.weapons[wIdx]), optId: null });
+    setPhase('MAPAIM');
+  }
+  async function confirmMap() {
+    if (!mapAim || busy.current) return;
+    const opt = mapAim.opts.find((o) => o.id === mapAim.optId); if (!opt) return;
+    busy.current = true;
+    const b = bRef.current; const uid = b.active;
+    setMapAim(null); setPhase('ANIMATING');
+    let r;
+    try { r = await executeMap(uid, mapAim.wIdx, opt.tiles); } finally { busy.current = false; }
+    if (!mounted.current) return;
+    if (r) { finish(r, bRef.current); return; }
+    endPlayerTurn();
+  }
+  function cancelMap() { sfx('cancel'); setMapAim(null); setPhase(byUid(bRef.current, bRef.current.active)?.moved ? 'TARGETING' : 'UNIT_SELECTED'); }
+
+  async function doForm(kind) {
+    if (busy.current) return;
+    busy.current = true;
     const b = bRef.current;
-    setBattle({ ...b, phase: 'PLAYER_IDLE' });
-    if (!alive(b).some((u) => u.team === 'player' && !u.acted)) setTimeout(() => endPhase(), 450);
+    const res = kind === 'awaken' ? awaken(b, b.active) : transform(b, b.active);
+    try { await play(res.events, b, res.battle); } finally { busy.current = false; }
+    setBattle({ ...bRef.current, phase: byUid(bRef.current, bRef.current.active).moved ? 'TARGETING' : 'UNIT_SELECTED' });
+    setTick((t) => t + 1);
   }
 
-  function doWait() {
-    const b = bRef.current; if (!sel) return;
-    const nb = clone(b); const u = byUid(nb, sel); u.acted = true; u.moved = true;
-    sfx('beep');
-    setBattle(nb); setFc(null);
-    setTimeout(afterUnitDone, 0);
-  }
+  function doWait() { sfx('beep'); endPlayerTurn(); }
   function cancelMove() {
-    const b = bRef.current; if (!sel) return;
-    const nb = clone(b); const u = byUid(nb, sel); u.x = u.ox; u.y = u.oy; u.moved = false;
+    const b = bRef.current; if (!b.active) return;
+    const nb = clone(b); const u = byUid(nb, b.active); u.x = u.ox; u.y = u.oy; u.moved = false;
     sfx('cancel'); setFc(null);
     setBattle({ ...nb, phase: 'UNIT_SELECTED' });
   }
 
-  const toggleAuto = () => { sfx('select'); setAuto((a) => !a); setFc(null); };
+  const toggleAuto = () => { sfx('select'); setAuto((a) => !a); setFc(null); setMapAim(null); };
 
   // ---------- render ----------
-  const phaseLabel = { PLAYER_IDLE: 'PLAYER PHASE', UNIT_SELECTED: 'UNIT SELECTED', TARGETING: 'TARGETING', ANIMATING: auto ? 'AUTO-BATTLE' : 'ANIMATING', ENEMY_PHASE: 'ENEMY PHASE', VICTORY: 'VICTORY', DEFEAT: 'DEFEAT' }[battle.phase] || battle.phase;
-  const phaseColor = battle.phase === 'ENEMY_PHASE' || battle.phase === 'DEFEAT' ? 'text-rose-300 border-rose-500/50' : battle.phase === 'VICTORY' ? 'text-amber-200 border-amber-400/60' : 'text-cyan-200 border-cyan-400/50';
-  const playersLeft = alive(battle).filter((u) => u.team === 'player').length;
-  const enemiesLeft = alive(battle).filter((u) => u.team === 'enemy').length;
-  const sideUnit = (fc && byUid(battle, fc.attUid)) || selUnit || inspectUnit;
+  const [VBW, VBH] = boardSize(battle);
+  const phaseLabel = { IDLE: '…', UNIT_SELECTED: 'YOUR TURN', TARGETING: 'YOUR TURN', MAPAIM: 'AIM MAP WEAPON', ANIMATING: auto ? 'AUTO-BATTLE' : 'ANIMATING', ENEMY_TURN: 'ENEMY TURN', VICTORY: 'VICTORY', DEFEAT: 'DEFEAT' }[battle.phase] || battle.phase;
+  const phaseColor = battle.phase === 'ENEMY_TURN' || battle.phase === 'DEFEAT' ? 'text-rose-300 border-rose-500/50' : battle.phase === 'VICTORY' ? 'text-amber-200 border-amber-400/60' : 'text-cyan-200 border-cyan-400/50';
+  const waitFactor = playerControl ? delayFactor(selUnit) : 1;
+  const waitHint = waitFactor === 1 ? '' : waitFactor === 0.8 ? ' · skipped move: next turn 20% sooner' : waitFactor === 0.7 ? ' · skipped attack: next turn 30% sooner' : ' · stood by: next turn 50% sooner';
+  const playersLeft = alive(battle).filter((u) => u.team === 'player' && !u.ship).length;
+  const enemiesLeft = alive(battle).filter((u) => u.team === 'enemy' && !u.ship).length;
+  const sideUnit = (fc && byUid(battle, fc.attUid)) || inspectUnit || selUnit;
   const tgtUnit = fc && byUid(battle, fc.tgtUid);
   const tgtKey = tgtUnit ? key(tgtUnit.x, tgtUnit.y) : null;
 
@@ -530,23 +655,23 @@ export default function Battle({ stage, initial, onResult, onExit, initialAuto =
           <Btn small variant="slate" onClick={() => { sfx('beep'); onView && onView(view === '3d' ? '2d' : '3d'); }} title="Switch 3D / 2D board"><Box size={14} /> {view === '3d' ? '3D' : '2D'}</Btn>
           <Btn small variant={cutins === 'off' ? 'slate' : 'cyan'} onClick={() => { sfx('beep'); onCutins && onCutins(cutins === 'full' ? 'short' : cutins === 'short' ? 'off' : 'full'); }} title="Attack cut-in sequences"><Film size={14} /> Cut-ins: {cutins === 'full' ? 'Full' : cutins === 'short' ? 'Short' : 'Off'}</Btn>
           <Btn small variant={auto ? 'amber' : 'slate'} onClick={toggleAuto} title="Auto-Battle at 2x speed"><FastForward size={14} /> Auto 2x {auto ? 'ON' : 'OFF'}</Btn>
-          <Btn small variant="cyan" onClick={endPhase} disabled={!playerControl}><Hourglass size={14} /> End Phase</Btn>
           <Btn small variant="rose" onClick={() => setConfirmRetreat(true)} disabled={!!battle.result}><Flag size={14} /> Retreat</Btn>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-3 items-start">
           {/* hex board */}
-          <div className="w-full lg:w-auto flex justify-center">
-            <div className="relative select-none rounded-xl overflow-hidden hud-border bg-slate-950/40" style={{ width: 'min(94vw, 620px, calc((100vh - 200px) * 1.18))', minWidth: 280, aspectRatio: `${VBW} / ${VBH}` }}>
+          <div className="w-full lg:w-auto flex flex-col items-center gap-2">
+            <div style={{ width: 'min(94vw, 660px, calc((100vh - 260px) * 1.12))', minWidth: 280 }}><TurnBar b={battle} /></div>
+            <div className="relative select-none rounded-xl overflow-hidden hud-border bg-slate-950/40" style={{ width: 'min(94vw, 660px, calc((100vh - 260px) * 1.12))', minWidth: 280, aspectRatio: `${VBW} / ${VBH}` }}>
               {view === '3d' ? (
-                <Board3D battle={battle} stage={stage} moveSet={moveSet} atkSet={atkSet} threatSet={threatSet} tgtKey={tgtKey} selUid={sel} onCellClick={onCellClick} fx={fxState} onFail={() => onView && onView('2d')} />
+                <Board3D battle={battle} stage={stage} moveSet={moveSet} atkSet={atkSet} threatSet={threatSet} hazardSet={hazardSet} tgtKey={tgtKey} selUid={battle.active || sel} onCellClick={onCellClick} fx={fxState} onFail={() => onView && onView('2d')} />
               ) : (<>
               {stage.art && <img src={stage.art} alt="" className="absolute inset-0 w-full h-full object-cover opacity-70 pointer-events-none" />}
               <svg viewBox={`0 0 ${VBW} ${VBH}`} className="absolute inset-0 w-full h-full">
                 {battle.map.map((row, y) => row.split('').map((ch, x) => {
                   const [cx, cy] = hexCenter(x, y); const k = key(x, y);
                   const t = TERRAIN[ch] || TERRAIN['.'];
-                  const isMove = moveSet?.has(k), isAtk = !isMove && atkSet?.has(k), isThreat = !isMove && !isAtk && threatSet?.has(k);
+                  const isMove = moveSet?.has(k), isAtk = !isMove && atkSet?.has(k), isThreat = !isMove && !isAtk && threatSet?.has(k), isHaz = hazardSet?.has(k);
                   const tgt = fc && byUid(battle, fc.tgtUid);
                   const tgtHere = tgt && tgt.x === x && tgt.y === y;
                   return (
@@ -570,6 +695,7 @@ export default function Battle({ stage, initial, onResult, onExit, initialAuto =
                       {isMove && <polygon points={hexPoints(cx, cy, HEX_R - 3)} fill="#0ea5e9" opacity=".42" className="tile-pulse" />}
                       {isAtk && <polygon points={hexPoints(cx, cy, HEX_R - 3)} fill="#f43f5e" opacity=".32" />}
                       {isThreat && <polygon points={hexPoints(cx, cy, HEX_R - 3)} fill="#f43f5e" opacity=".16" />}
+                      {isHaz && <g className="tile-pulse"><polygon points={hexPoints(cx, cy, HEX_R - 4)} fill="#f59e0b" opacity=".35" stroke="#fbbf24" strokeWidth="3" strokeDasharray="10 6" /><text x={cx} y={cy + 12} textAnchor="middle" fontSize="34" fill="#fde68a">⚠</text></g>}
                       {tgtHere && <polygon points={hexPoints(cx, cy, HEX_R - 5)} fill="none" stroke="#fcd34d" strokeWidth="5" />}
                       <polygon points={hexPoints(cx, cy, HEX_R - 2)} className="hex-hover" fill="#fff" opacity="0" />
                     </g>
@@ -579,14 +705,15 @@ export default function Battle({ stage, initial, onResult, onExit, initialAuto =
               {/* units */}
               <div className="absolute inset-0 pointer-events-none">
                 {battle.units.filter((u) => u.hp > 0 || fxState.booms.some((bm) => bm.x === u.x && bm.y === u.y)).map((u) => {
-                  const isSel = u.uid === sel;
+                  const isSel = u.uid === (battle.active || sel);
+                  const big = u.ship ? 1.7 : u.boss ? 1.2 : 1;
                   const [cx, cy] = hexCenter(u.x, u.y);
                   return (
                     <div key={u.uid} className="absolute transition-all duration-300 ease-out" style={{ left: `${((cx - HEX_W / 2) / VBW) * 100}%`, top: `${((cy - HEX_H / 2) / VBH) * 100}%`, width: `${(HEX_W / VBW) * 100}%`, height: `${(HEX_H / VBH) * 100}%`, opacity: u.hp > 0 ? 1 : 0.2 }}>
-                      <div key={fxState.shakes[u.uid] || 0} className={`relative w-full h-full ${fxState.shakes[u.uid] ? 'anim-shake' : ''}`}>
+                      <div key={fxState.shakes[u.uid] || 0} className={`relative w-full h-full ${fxState.shakes[u.uid] ? 'anim-shake' : ''}`} style={big !== 1 ? { transform: `scale(${big})`, transformOrigin: '50% 80%' } : undefined}>
                         <div className={`absolute left-[14%] right-[14%] bottom-[18%] h-[15%] rounded-[50%] ${u.team === 'player' ? 'bg-sky-400/40 border border-sky-300/70' : 'bg-rose-500/40 border border-rose-400/70'} ${isSel ? 'anim-glow ring-2 ring-cyan-300' : ''}`} />
                         <div className="absolute left-[6%] right-[6%] top-[12%] bottom-[16%]">
-                          <MechaSprite look={u.look} size="100%" dim={u.team === 'player' && u.acted && battle.phase !== 'ENEMY_PHASE'} bob={!u.acted} />
+                          <MechaSprite look={u.look} size="100%" bob />
                         </div>
                         {u.boss && <Crown className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-1/4 text-amber-300 drop-shadow" />}
                         {u.tension >= 200 && <Zap className="absolute top-[14%] right-[4%] w-1/4 h-1/5 text-fuchsia-300 animate-pulse" />}
@@ -649,7 +776,7 @@ export default function Battle({ stage, initial, onResult, onExit, initialAuto =
               {/* banner */}
               {fxState.banner && (
                 <div key={fxState.banner.id} className="absolute inset-x-0 top-[40%] flex justify-center pointer-events-none">
-                  <div className={`anim-banner px-6 sm:px-10 py-2 sm:py-3 font-black italic tracking-[0.15em] text-xl sm:text-3xl border-y-2 ${fxState.banner.kind === 'chain' ? 'bg-gradient-to-r from-cyan-500/90 via-amber-400/90 to-cyan-500/90 text-slate-950 border-white shadow-[0_0_40px_rgba(34,211,238,.9)]' : fxState.banner.kind === 'enemy' ? 'bg-rose-700/90 text-white border-rose-300' : fxState.banner.kind === 'ult' ? 'bg-gradient-to-r from-fuchsia-700/90 to-amber-500/90 text-white border-amber-200 shadow-[0_0_40px_rgba(244,114,182,.9)]' : 'bg-sky-700/90 text-white border-sky-300'}`}>
+                  <div className={`anim-banner px-6 sm:px-10 py-2 sm:py-3 font-black italic tracking-[0.15em] text-lg sm:text-3xl text-center border-y-2 ${fxState.banner.kind === 'map' ? 'bg-gradient-to-r from-orange-600/90 via-rose-600/90 to-orange-600/90 text-white border-amber-200 shadow-[0_0_40px_rgba(249,115,22,.9)]' : fxState.banner.kind === 'team' ? 'bg-gradient-to-r from-emerald-500/90 to-cyan-500/90 text-slate-950 border-white shadow-[0_0_40px_rgba(52,211,153,.9)]' : fxState.banner.kind === 'form' ? 'bg-cyan-600/90 text-white border-cyan-200' : fxState.banner.kind === 'warn' ? 'bg-amber-500/90 text-slate-950 border-amber-100' : fxState.banner.kind === 'chain' ? 'bg-gradient-to-r from-cyan-500/90 via-amber-400/90 to-cyan-500/90 text-slate-950 border-white shadow-[0_0_40px_rgba(34,211,238,.9)]' : fxState.banner.kind === 'enemy' ? 'bg-rose-700/90 text-white border-rose-300' : fxState.banner.kind === 'ult' ? 'bg-gradient-to-r from-fuchsia-700/90 to-amber-500/90 text-white border-amber-200 shadow-[0_0_40px_rgba(244,114,182,.9)]' : 'bg-sky-700/90 text-white border-sky-300'}`}>
                     {fxState.banner.text}
                   </div>
                 </div>
@@ -662,33 +789,44 @@ export default function Battle({ stage, initial, onResult, onExit, initialAuto =
             <div className="bg-slate-950/85 rounded-xl hud-border">
               {enemyFc && byUid(battle, enemyFc.attUid) && byUid(battle, enemyFc.tgtUid) ? (
                 <ForecastCard b={battle} fc={enemyFc} enemyPreview />
+              ) : mapAim && playerControl ? (
+                <MapCard b={battle} aim={mapAim} onConfirm={confirmMap} onCancel={cancelMap} />
               ) : fc ? (
-                <ForecastCard b={battle} fc={fc} onWeapon={(i) => setFc({ ...fc, wIdx: i })} onConfirm={confirmAttack} onCancel={() => { sfx('cancel'); setFc(null); setPhase(selUnit?.moved ? 'TARGETING' : 'UNIT_SELECTED'); }} />
+                <ForecastCard b={battle} fc={fc} onWeapon={(i) => setFc({ ...fc, wIdx: i })} onTeam={(t) => setFc({ ...fc, team: t })} onConfirm={confirmAttack} onCancel={() => { sfx('cancel'); setFc(null); setPhase(selUnit?.moved ? 'TARGETING' : 'UNIT_SELECTED'); }} />
               ) : sideUnit ? (
                 <UnitCard u={sideUnit} b={battle} />
               ) : (
                 <div className="p-3 text-xs text-slate-400 space-y-1.5">
                   <div className="text-cyan-200 font-bold text-sm">Command Brief</div>
-                  <p>Tap a <span className="text-sky-300">blue unit</span> to see its <span className="text-sky-300">move tiles</span> and <span className="text-rose-300">attack range</span>. Tap a blue tile to move, then tap an enemy for the Battle Forecast.</p>
-                  <p>Tap an enemy directly from the red zone and your unit will auto-path into range.</p>
-                  <p>Kill = <b className="text-amber-300">CHAIN STEP</b> (act again, up to 2×). Hits build <b className="text-fuchsia-300">Tension</b>; at 200 your Ultimate unlocks.</p>
-                  <p><Wrench size={11} className="inline text-emerald-300" /> Talyer docks heal 15% HP/EN each turn · Debris gives +15% EVA/DEF. The board is hexagonal — every tile has 6 neighbors.</p>
+                  <p><b className="text-amber-300">Turn order</b> follows speed (MOB) — the bar above the board shows who moves next. Skip your move or attack and your next turn comes sooner.</p>
+                  <p>Counter-attacks cost <b className="text-rose-300">counter points</b> ◆. Agile units hold more and refill faster; holding fire gives +1.</p>
+                  <p>Kill = <b className="text-amber-300">CHAIN STEP</b>. At 200 <b className="text-fuchsia-300">Tension</b>: Ultimate + <b>Awakening</b>. Some mecha <b>Transform</b>. Ships and boss frames have <b className="text-orange-300">Map weapons</b>. Next to an ally with both at 150+ Tension? <b className="text-emerald-300">Team-Up</b>.</p>
+                  <p><Ship size={11} className="inline text-amber-300" /> Win: sink the enemy flagship, defeat the boss, or wipe out the enemy. Lose if BRP Balangay sinks. <AlertTriangle size={11} className="inline text-amber-300" /> Get off ⚠ tiles before hazards hit.</p>
+                  <p><Wrench size={11} className="inline text-emerald-300" /> Talyer docks and your flagship repair units next to them.</p>
                 </div>
               )}
-              {playerControl && selUnit && selUnit.team === 'player' && !fc && (
-                <div className="px-2.5 pb-2.5 flex gap-2">
-                  {selUnit.moved && <Btn small variant="green" className="flex-1" onClick={doWait}><Check size={14} /> Wait</Btn>}
-                  {!selUnit.moved && <Btn small variant="green" className="flex-1" onClick={doWait}><Check size={14} /> Wait here</Btn>}
-                  {selUnit.moved && selUnit.chain === 0 && <Btn small variant="slate" onClick={cancelMove}><Undo2 size={14} /> Undo Move</Btn>}
-                  {!selUnit.moved && <Btn small variant="slate" onClick={deselect}><X size={14} /> Deselect</Btn>}
+              {playerControl && !fc && !mapAim && (
+                <div className="px-2.5 pb-2.5 space-y-1.5" data-actions>
+                  {inspectUnit && inspectUnit.uid !== selUnit.uid && <button onClick={() => setInspect(null)} className="w-full text-[11px] text-cyan-300 underline">Back to {selUnit.name}</button>}
+                  <div className="flex flex-wrap gap-1.5">
+                    {canTransform(selUnit) && <Btn small variant="cyan" onClick={() => doForm('transform')} title={selUnit.modes[(selUnit.mode + 1) % selUnit.modes.length].desc || ''}><Repeat size={14} /> {selUnit.modes[(selUnit.mode + 1) % selUnit.modes.length].name}</Btn>}
+                    {canAwaken(selUnit) && <Btn small variant="amber" onClick={() => doForm('awaken')}><Sparkles size={14} /> AWAKEN</Btn>}
+                    {!selUnit.attacked && mapWeapons(selUnit).map(({ w, i }) => (
+                      <Btn key={i} small variant="rose" disabled={!weaponUsable(selUnit, w)} onClick={() => startMapAim(i)} title={!weaponUsable(selUnit, w) ? (w.ult && selUnit.tension < 200 ? 'Needs 200 Tension' : `Needs ${w.en} EN`) : 'Area attack'}><Radiation size={14} /> {w.name.replace(' (MAP)', '')}</Btn>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <Btn small variant="green" className="flex-1" onClick={doWait}><Hourglass size={14} /> End Turn{waitHint}{!selUnit.attacked ? ' · +1 ◆' : ''}</Btn>
+                    {selUnit.moved && selUnit.chain === 0 && (selUnit.x !== selUnit.ox || selUnit.y !== selUnit.oy) && <Btn small variant="slate" onClick={cancelMove}><Undo2 size={14} /> Undo</Btn>}
+                  </div>
                 </div>
               )}
             </div>
             {/* roster strip */}
-            <div className="grid grid-cols-4 gap-1.5">
+            <div className="grid grid-cols-5 gap-1.5">
               {battle.units.filter((u) => u.team === 'player').map((u) => (
-                <button key={u.uid} onClick={() => u.hp > 0 && onCellClick(u.x, u.y)} className={`rounded-lg p-1 text-left bg-slate-950/80 border ${u.uid === sel ? 'border-cyan-300' : 'border-slate-700'} ${u.hp <= 0 ? 'opacity-30' : u.acted ? 'opacity-60' : ''}`}>
-                  <div className="flex justify-center"><MechaSprite look={u.look} size={34} dim={u.acted || u.hp <= 0} /></div>
+                <button key={u.uid} onClick={() => { if (u.hp > 0) { sfx('beep'); setInspect(u.uid); } }} className={`rounded-lg p-1 text-left bg-slate-950/80 border ${u.uid === battle.active ? 'border-amber-300' : 'border-slate-700'} ${u.hp <= 0 ? 'opacity-30' : ''}`}>
+                  <div className="flex justify-center"><MechaSprite look={u.look} size={34} dim={u.hp <= 0} /></div>
                   <div className="text-[9px] truncate text-slate-200">{u.name}</div>
                   <Bar value={u.hp} max={u.maxHp} color={hpColor(u.hp, u.maxHp)} h="h-1" />
                   <div className={`h-1 mt-0.5 rounded ${u.tension >= 200 ? 'bg-fuchsia-400' : u.tension >= 150 ? 'bg-amber-400' : 'bg-slate-700'}`} />
