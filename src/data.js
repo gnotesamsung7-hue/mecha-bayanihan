@@ -6,9 +6,25 @@ import iconImg from './assets/icon.webp';
 import keyartImg from './assets/keyart.webp';
 import bgStage1Img from './assets/bg_stage1.webp';
 import jeepneyKaiserImg from './assets/jeepney_kaiser.webp';
+import bgStage2Img from './assets/bg_stage2.webp';
+import bgStage3Img from './assets/bg_stage3.webp';
+import tanod01Img from './assets/mecha_tanod01.webp';
+import tanodCustomImg from './assets/mecha_tanod_custom.webp';
+import agilaImg from './assets/mecha_agila.webp';
+import sarimanokImg from './assets/mecha_sarimanok.webp';
+import kapreImg from './assets/mecha_kapre.webp';
+import tikbalangImg from './assets/mecha_tikbalang.webp';
+import manananggalImg from './assets/mecha_manananggal.webp';
+import bakunawaImg from './assets/mecha_bakunawa.webp';
+import customTemplateImg from './assets/mecha_custom_template.webp';
+import pilotMigoImg from './assets/pilot_migo.webp';
+import pilotDiwataImg from './assets/pilot_diwata.webp';
+import cutinMigoImg from './assets/cutin_migo.webp';
+import cutinDiwataImg from './assets/cutin_diwata.webp';
 
 export const GAME_TITLE = 'Mecha Bayanihan Tactics';
-export const APP_VERSION = 'v1.2.0';
+export const APP_VERSION = 'v1.3.0';
+export const CUSTOM_TEMPLATE_IMG = customTemplateImg;
 export const ICON_IMG = iconImg;
 export const KEYART_IMG = keyartImg;
 
@@ -18,6 +34,21 @@ export const INSTALLED_ART = {
   'ui_title_keyart.png': keyartImg,
   'bg_stage1_orbital_edsa.png': bgStage1Img,
   'mecha_jeepney_kaiser.png': jeepneyKaiserImg,
+  'bg_stage2_divisoria_underground.png': bgStage2Img,
+  'bg_stage3_bakunawa_eclipse.png': bgStage3Img,
+  'mecha_tanod_01.png': tanod01Img,
+  'mecha_tanod_custom.png': tanodCustomImg,
+  'mecha_agila_mk2.png': agilaImg,
+  'mecha_sarimanok_zeta.png': sarimanokImg,
+  'mecha_kapre.png': kapreImg,
+  'mecha_tikbalang_custom.png': tikbalangImg,
+  'mecha_manananggal.png': manananggalImg,
+  'mecha_bakunawa_boss.png': bakunawaImg,
+  'mecha_custom_template.png': customTemplateImg,
+  'pilot_migo_santos.png': pilotMigoImg,
+  'pilot_reyna_diwata.png': pilotDiwataImg,
+  'cutin_migo.png': cutinMigoImg,
+  'cutin_diwata.png': cutinDiwataImg,
 };
 
 // ---------- Terrain ----------
@@ -52,7 +83,7 @@ export const MECHA = {
       { name: 'Pito Flare Missiles', power: 90, min: 2, max: 4, en: 15, hit: 66, crit: 8, fx: 'missile' },
       { name: 'Ronda Barrage', power: 170, min: 1, max: 4, en: 40, hit: 80, crit: 15, ult: true, fx: 'mega' },
     ],
-    look: { head: 'tanod', torso: 'standard', arms: 'standard', legs: 'standard', pack: 'thrusters', weapon: 'rifle', colors: { p: '#e2e8f0', s: '#1d4ed8', a: '#facc15', e: '#22d3ee' } },
+    look: { img: tanod01Img, head: 'tanod', torso: 'standard', arms: 'standard', legs: 'standard', pack: 'thrusters', weapon: 'rifle', colors: { p: '#e2e8f0', s: '#1d4ed8', a: '#facc15', e: '#22d3ee' } },
   },
   tanodCustom: {
     id: 'tanodCustom', name: 'TND-02 Tanod Custom', short: 'Tanod Custom', cls: 'Defender', rarity: 'SR', faction: 'Bayanihan',
@@ -63,7 +94,7 @@ export const MECHA = {
       { name: 'Bumper Shield Bash', power: 95, min: 1, max: 1, en: 10, hit: 85, crit: 10, fx: 'slash' },
       { name: 'Barangay Wall Cannon', power: 190, min: 2, max: 4, en: 45, hit: 78, crit: 15, ult: true, fx: 'mega' },
     ],
-    look: { head: 'tanod', torso: 'heavy', arms: 'heavy', legs: 'heavy', pack: 'thrusters', weapon: 'shield', colors: { p: '#1e3a8a', s: '#e2e8f0', a: '#f59e0b', e: '#67e8f9' } },
+    look: { img: tanodCustomImg, head: 'tanod', torso: 'heavy', arms: 'heavy', legs: 'heavy', pack: 'thrusters', weapon: 'shield', colors: { p: '#1e3a8a', s: '#e2e8f0', a: '#f59e0b', e: '#67e8f9' } },
   },
   agilaMk2: {
     id: 'agilaMk2', name: 'AGL-2 Agila Mk-II', short: 'Agila Mk-II', cls: 'Attacker', rarity: 'SR', faction: 'Bayanihan',
@@ -74,7 +105,7 @@ export const MECHA = {
       { name: 'Feather Vulcans', power: 70, min: 1, max: 2, en: 0, hit: 86, crit: 5, fx: 'shot' },
       { name: 'Haring Ibon Dive', power: 230, min: 1, max: 3, en: 55, hit: 82, crit: 25, ult: true, fx: 'mega' },
     ],
-    look: { head: 'agila', torso: 'slim', arms: 'standard', legs: 'thruster', pack: 'eagle', weapon: 'rifle', colors: { p: '#f8fafc', s: '#78350f', a: '#fbbf24', e: '#fde047' } },
+    look: { img: agilaImg, head: 'agila', torso: 'slim', arms: 'standard', legs: 'thruster', pack: 'eagle', weapon: 'rifle', colors: { p: '#f8fafc', s: '#78350f', a: '#fbbf24', e: '#fde047' } },
   },
   sarimanokZ: {
     id: 'sarimanokZ', name: 'SRM-Z Sarimanok Zeta', short: 'Sarimanok Z', cls: 'Attacker', rarity: 'SSR', faction: 'Bayanihan',
@@ -85,7 +116,7 @@ export const MECHA = {
       { name: 'Kampilan Saber', power: 140, min: 1, max: 1, en: 10, hit: 86, crit: 18, fx: 'slash' },
       { name: 'Bahaghari Burst', power: 290, min: 2, max: 5, en: 70, hit: 85, crit: 30, ult: true, fx: 'rainbow' },
     ],
-    look: { head: 'sarimanok', torso: 'slim', arms: 'blade', legs: 'thruster', pack: 'plume', weapon: 'sword', colors: { p: '#f8fafc', s: '#dc2626', a: '#16a34a', e: '#22d3ee' } },
+    look: { img: sarimanokImg, head: 'sarimanok', torso: 'slim', arms: 'blade', legs: 'thruster', pack: 'plume', weapon: 'sword', colors: { p: '#f8fafc', s: '#dc2626', a: '#16a34a', e: '#22d3ee' } },
   },
   kapreGrunt: {
     id: 'kapreGrunt', name: 'KPR-06 Kapre', short: 'Kapre', cls: 'Attacker', rarity: 'R', faction: 'Dilim',
@@ -96,7 +127,7 @@ export const MECHA = {
       { name: 'Balete Axe', power: 100, min: 1, max: 1, en: 0, hit: 80, crit: 10, fx: 'slash' },
       { name: 'Higanteng Hampas', power: 180, min: 1, max: 2, en: 40, hit: 78, crit: 18, ult: true, fx: 'mega' },
     ],
-    look: { head: 'kapre', torso: 'heavy', arms: 'heavy', legs: 'standard', pack: 'thrusters', weapon: 'axe', colors: { p: '#166534', s: '#57534e', a: '#f97316', e: '#fb923c' } },
+    look: { img: kapreImg, liberatedHue: 180, head: 'kapre', torso: 'heavy', arms: 'heavy', legs: 'standard', pack: 'thrusters', weapon: 'axe', colors: { p: '#166534', s: '#57534e', a: '#f97316', e: '#fb923c' } },
   },
   tikbalangCustom: {
     id: 'tikbalangCustom', name: 'TKB-07 Tikbalang Custom', short: 'Tikbalang C', cls: 'Attacker', rarity: 'SR', faction: 'Dilim',
@@ -107,7 +138,7 @@ export const MECHA = {
       { name: 'Hoof Cannon', power: 95, min: 2, max: 3, en: 10, hit: 72, crit: 8, fx: 'missile' },
       { name: 'Ligaw na Daan', power: 220, min: 1, max: 2, en: 50, hit: 86, crit: 25, ult: true, fx: 'mega' },
     ],
-    look: { head: 'tikbalang', torso: 'standard', arms: 'claw', legs: 'heavy', pack: 'thrusters', weapon: 'whip', colors: { p: '#334155', s: '#7c2d12', a: '#38bdf8', e: '#ef4444' } },
+    look: { img: tikbalangImg, liberatedHue: 180, head: 'tikbalang', torso: 'standard', arms: 'claw', legs: 'heavy', pack: 'thrusters', weapon: 'whip', colors: { p: '#334155', s: '#7c2d12', a: '#38bdf8', e: '#ef4444' } },
   },
   manananggal: {
     id: 'manananggal', name: 'MNG-14 Manananggal', short: 'Manananggal', cls: 'Attacker', rarity: 'SR', faction: 'Dilim',
@@ -118,7 +149,7 @@ export const MECHA = {
       { name: 'Bat-Wing Funnels', power: 100, min: 2, max: 4, en: 15, hit: 75, crit: 10, fx: 'missile' },
       { name: 'Hating-Gabi Hunt', power: 245, min: 1, max: 4, en: 60, hit: 82, crit: 28, ult: true, fx: 'mega' },
     ],
-    look: { head: 'manananggal', torso: 'slim', arms: 'claw', legs: 'none', pack: 'batwings', weapon: 'lance', colors: { p: '#4c1d95', s: '#1e1b4b', a: '#f43f5e', e: '#fb7185' } },
+    look: { img: manananggalImg, liberatedHue: 260, head: 'manananggal', torso: 'slim', arms: 'claw', legs: 'none', pack: 'batwings', weapon: 'lance', colors: { p: '#4c1d95', s: '#1e1b4b', a: '#f43f5e', e: '#fb7185' } },
   },
   bakunawa: {
     id: 'bakunawa', name: 'BKN-04 Bakunawa', short: 'Bakunawa', cls: 'Defender', rarity: 'SSR', faction: 'Dilim',
@@ -129,7 +160,7 @@ export const MECHA = {
       { name: 'Serpent Fang', power: 90, min: 1, max: 1, en: 0, hit: 82, crit: 10, fx: 'slash' },
       { name: 'Eklipse Devourer', power: 300, min: 1, max: 5, en: 80, hit: 82, crit: 30, ult: true, fx: 'mega' },
     ],
-    look: { head: 'bakunawa', torso: 'heavy', arms: 'heavy', legs: 'heavy', pack: 'serpent', weapon: 'shield', colors: { p: '#991b1b', s: '#0f172a', a: '#f59e0b', e: '#fde047' } },
+    look: { img: bakunawaImg, liberatedHue: 210, head: 'bakunawa', torso: 'heavy', arms: 'heavy', legs: 'heavy', pack: 'serpent', weapon: 'shield', colors: { p: '#991b1b', s: '#0f172a', a: '#f59e0b', e: '#fde047' } },
   },
   jeepneyKaiser: {
     id: 'jeepneyKaiser', name: 'JPY-78 Jeepney Kaiser', short: 'Jeepney Kaiser', cls: 'Attacker', rarity: 'SR', faction: 'Bayanihan',
@@ -153,6 +184,7 @@ export const PILOTS = {
     story: 'Grew up in a Nueva Ecija rice barrio fixing his late father\'s half-built jeepney. When the Dilim Legion burned the harvest, he hot-wired the Jeepney Kaiser prototype — wearing the anting-anting his Lola swore protects those who protect others.',
     skill: { id: 'newtype', name: 'Anting-Anting', desc: '+20% Hit & Evasion.' },
     stats: { atk: 6, def: 4, mob: 10 },
+    img: pilotMigoImg,
     look: { skin: '#c68642', hair: '#111827', style: 'spiky', acc: 'headband', accColor: '#dc2626', suit: '#1d4ed8' },
   },
   kapitanPula: {
@@ -188,6 +220,7 @@ export const PILOTS = {
     story: 'The last diwata of Bundok Kalinaw, asleep for a thousand years until the Dilim Legion began cutting her sacred forest to build war machines. She fights so the trees will stop crying.',
     skill: { id: 'pressure', name: 'Titig ng Diwata', desc: 'Enemies within 2 tiles suffer -15% Hit.' },
     stats: { atk: 10, def: 8, mob: 8 },
+    img: pilotDiwataImg,
     look: { skin: '#e0ac69', hair: '#065f46', style: 'long', acc: 'tiara', accColor: '#fde047', suit: '#14532d' },
   },
   kadete: {
@@ -290,7 +323,7 @@ export const STAGES = [
       { mecha: 'kapreGrunt', pilot: 'grunt', x: 3, y: 1 },
     ],
     reward: { capital: 2500, bp: 12, diamonds: 150 }, firstClear: { diamonds: 900, capital: 2000, bp: 12 },
-    bg: 'from-stone-950 via-slate-950 to-amber-950',
+    bg: 'from-stone-950 via-slate-950 to-amber-950', art: bgStage2Img,
   },
   {
     id: 's3', num: 3, name: 'Bakunawa Eclipse', sub: '4v6 boss battle vs. the moon-eater',
@@ -316,7 +349,7 @@ export const STAGES = [
       { mecha: 'kapreGrunt', pilot: 'grunt', x: 7, y: 2 },
     ],
     reward: { capital: 5000, bp: 25, diamonds: 300 }, firstClear: { diamonds: 1500, capital: 4000, bp: 25 },
-    bg: 'from-rose-950 via-slate-950 to-black',
+    bg: 'from-rose-950 via-slate-950 to-black', art: bgStage3Img,
   },
 ];
 

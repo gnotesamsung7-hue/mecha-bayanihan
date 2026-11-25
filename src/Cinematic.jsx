@@ -226,7 +226,7 @@ export default function Cinematic({ exchange, mode = 'full', stageArt, onDone })
         {/* dialogue */}
         {st.dialog && !st.mono && (
           <div key={`dl${st.idx}${st.dialog.name}${st.dialog.text}`} className={`absolute bottom-[8%] ${st.dialog.side === 'L' ? 'left-[2%] cin-in-l' : 'right-[2%] cin-in-r'} w-[78%] sm:w-[60%] flex items-center gap-2 bg-slate-950/90 border ${st.dialog.enemy ? 'border-rose-400/60' : 'border-cyan-400/60'} rounded-xl p-2 ${st.dialog.side === 'R' ? 'flex-row-reverse text-right' : ''}`}>
-            <div className="shrink-0 rounded-lg overflow-hidden">{portraitArt(st.dialog.pilotId) ? <img src={portraitArt(st.dialog.pilotId)} alt="" className="w-12 h-12 sm:w-14 sm:h-14 object-cover" /> : <PilotPortrait pilot={PILOTS[st.dialog.pilotId] || PILOTS.kadete} size={52} />}</div>
+            <div className="shrink-0 rounded-lg overflow-hidden"><PilotPortrait pilot={PILOTS[st.dialog.pilotId] || PILOTS.kadete} size={52} /></div>
             <div className="min-w-0">
               <div className={`text-[10px] sm:text-xs font-black tracking-wider ${st.dialog.enemy ? 'text-rose-300' : 'text-amber-300'}`}>{st.dialog.name}</div>
               <div className="text-xs sm:text-base text-white leading-snug">“{typed}”</div>
@@ -235,21 +235,35 @@ export default function Cinematic({ exchange, mode = 'full', stageArt, onDone })
         )}
 
         {/* ultimate monologue */}
-        {st.mono && (
-          <div className="absolute inset-0 flex items-center">
-            <div className="absolute inset-x-0 top-[18%] bottom-[18%] mono-band bg-gradient-to-r from-fuchsia-900/95 via-slate-950/95 to-amber-900/90 border-y-2 border-amber-300/80" />
-            <div className="relative flex items-center gap-3 sm:gap-5 px-4 sm:px-8 w-full">
-              <div className="portrait-in shrink-0 rounded-2xl overflow-hidden ring-4 ring-amber-300/80 shadow-[0_0_40px_rgba(251,191,36,.6)]">
-                {portraitArt(st.mono.pilotId) ? <img src={portraitArt(st.mono.pilotId)} alt="" className="w-24 h-24 sm:w-40 sm:h-40 object-cover" /> : <PilotPortrait pilot={PILOTS[st.mono.pilotId] || PILOTS.kadete} size={window.innerWidth < 640 ? 96 : 160} />}
+        {st.mono && (() => {
+          const art = portraitArt(st.mono.pilotId);
+          return (
+            <div className="absolute inset-0 flex items-center">
+              <div className="absolute inset-x-0 top-[18%] bottom-[18%] mono-band overflow-hidden bg-gradient-to-r from-fuchsia-900/95 via-slate-950/95 to-amber-900/90 border-y-2 border-amber-300/80">
+                {art && <img src={art} alt="" className="absolute inset-0 w-full h-full object-cover portrait-in" style={{ objectPosition: '50% 30%' }} />}
+                {art && <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />}
               </div>
-              <div className="min-w-0">
-                <div className="text-[10px] sm:text-xs font-black tracking-[0.3em] text-amber-300">{st.mono.name}</div>
-                {st.mono.text && <div className="text-sm sm:text-xl text-white leading-snug mt-1 italic">“{typed}”</div>}
-                <div className="mt-2 text-lg sm:text-3xl font-black italic tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-fuchsia-300 flex items-center gap-2"><Zap className="text-amber-300 shrink-0" />{st.mono.weapon}</div>
-              </div>
+              {art ? (
+                <div className="absolute inset-x-0 bottom-[19%] px-4 sm:px-8 pb-2">
+                  <div className="text-[10px] sm:text-xs font-black tracking-[0.3em] text-amber-300 drop-shadow">{st.mono.name}</div>
+                  {st.mono.text && <div className="text-xs sm:text-lg text-white leading-snug mt-1 italic drop-shadow-[0_2px_2px_rgba(0,0,0,.9)] max-w-3xl">“{typed}”</div>}
+                  <div className="mt-1 text-lg sm:text-3xl font-black italic tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-fuchsia-300 flex items-center gap-2"><Zap className="text-amber-300 shrink-0" />{st.mono.weapon}</div>
+                </div>
+              ) : (
+                <div className="relative flex items-center gap-3 sm:gap-5 px-4 sm:px-8 w-full">
+                  <div className="portrait-in shrink-0 rounded-2xl overflow-hidden ring-4 ring-amber-300/80 shadow-[0_0_40px_rgba(251,191,36,.6)]">
+                    <PilotPortrait pilot={PILOTS[st.mono.pilotId] || PILOTS.kadete} size={window.innerWidth < 640 ? 96 : 160} />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-[10px] sm:text-xs font-black tracking-[0.3em] text-amber-300">{st.mono.name}</div>
+                    {st.mono.text && <div className="text-sm sm:text-xl text-white leading-snug mt-1 italic">“{typed}”</div>}
+                    <div className="mt-2 text-lg sm:text-3xl font-black italic tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-fuchsia-300 flex items-center gap-2"><Zap className="text-amber-300 shrink-0" />{st.mono.weapon}</div>
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         <button onClick={() => { skipped.current = true; finish(); }} className="absolute top-[8%] left-1/2 -translate-x-1/2 bg-black/60 border border-white/30 text-white text-[11px] font-bold rounded-full px-3 py-1 flex items-center gap-1 hover:bg-black/80">
           <SkipForward size={12} /> Skip

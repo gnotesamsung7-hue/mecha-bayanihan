@@ -22,7 +22,7 @@ export const tensionLevel = (t) => (t >= 200 ? 'SUPER' : t >= 150 ? 'HIGH' : 'NO
 export const clone = (b) => ({ ...b, units: b.units.map((u) => ({ ...u })), log: [...b.log] });
 
 let uidSeq = 1;
-// Captured Dilim frames get a Bayanihan repaint when they fight on your side.
+// Captured Dilim frames get a Bayanihan repaint (or a hue shift on artwork) when they fight on your side.
 const LIBERATED = { p: '#0e7490', s: '#e2e8f0', a: '#facc15', e: '#22d3ee' };
 function makeUnit(mecha, pilot, team, x, y, scale = 1, boss = false) {
   const s = combinedStats(mecha, pilot);
@@ -30,7 +30,7 @@ function makeUnit(mecha, pilot, team, x, y, scale = 1, boss = false) {
   const maxHp = Math.round(s.hp * hpMul);
   return {
     uid: `u${uidSeq++}`, team, mechaId: mecha.id, name: mecha.short || mecha.name, fullName: mecha.name, cls: mecha.cls, rarity: mecha.rarity,
-    look: team === 'player' && mecha.faction === 'Dilim' ? { ...mecha.look, colors: LIBERATED } : mecha.look, weapons: mecha.weapons.map((w) => ({ ...w })),
+    look: team === 'player' && mecha.faction === 'Dilim' ? (mecha.look.img ? { ...mecha.look, hue: mecha.look.liberatedHue || 180 } : { ...mecha.look, colors: LIBERATED }) : mecha.look, weapons: mecha.weapons.map((w) => ({ ...w })),
     pilotId: pilot.id, pilotName: pilot.name, skill: pilot.skill.id, skillName: pilot.skill.name,
     x, y, ox: x, oy: y,
     maxHp, hp: maxHp, maxEn: s.en, en: s.en,

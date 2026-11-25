@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Hammer, Shuffle, Save, Trash2, Share2, Download, Copy, Plus, Minus, Pencil, Coins, FileText, X } from 'lucide-react';
 import QRCode from 'qrcode';
-import { PARTS, CUSTOM_WEAPONS, CUSTOM_ULTS, COLOR_PRESETS, CUSTOM_COST, CUSTOM_LIMIT, CLASSES } from '../data.js';
+import { PARTS, CUSTOM_WEAPONS, CUSTOM_ULTS, COLOR_PRESETS, CUSTOM_COST, CUSTOM_LIMIT, CLASSES, CUSTOM_TEMPLATE_IMG } from '../data.js';
 import { MechaSprite } from '../Sprite.jsx';
 import { Panel, SectionTitle, Btn, ClassBadge, StatPill, Modal, copyText } from '../ui.jsx';
 import { customStats, buildCustomMecha, encodeDesign, decodeDesign, TUNE_POINTS } from '../game.js';
@@ -109,6 +109,10 @@ export default function Workshop({ save, setSave, toast, downloads }) {
   return (
     <div className="space-y-4">
       <SectionTitle icon={Hammer} sub={`Mix parts, paint it, tune it, name it. Building costs ${CUSTOM_COST.capital.toLocaleString()} Capital + ${CUSTOM_COST.bp} Blueprints (editing is free). Up to ${CUSTOM_LIMIT} custom mecha.`}>Workshop — Create Your Own Mecha</SectionTitle>
+      <Panel className="p-3 flex items-center gap-3 overflow-hidden">
+        <img src={CUSTOM_TEMPLATE_IMG} alt="Example custom mecha: salakot helm, bangka outrigger, arnis batons" className="h-24 sm:h-32 w-auto shrink-0" />
+        <div className="text-xs sm:text-sm text-slate-300"><div className="font-bold text-amber-200 text-sm sm:text-base">Gawang Pinoy example build</div>Salakot Helm + Standard Frame + Bangka Outrigger + Arnis Twin Batons. Start from the default parts below to build something like it — then make it yours.</div>
+      </Panel>
       <div className="grid gap-3 lg:grid-cols-[320px_1fr]">
         <Panel amber className="p-3 space-y-3 lg:sticky lg:top-2 self-start">
           <div className="relative rounded-xl bg-gradient-to-b from-slate-800/60 via-slate-900 to-slate-950 scan-bg flex items-center justify-center py-3">
