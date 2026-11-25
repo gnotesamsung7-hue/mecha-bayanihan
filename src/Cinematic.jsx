@@ -28,6 +28,8 @@ export function buildExchange(events, pre) {
 }
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+// Mecha art is drawn facing left or right; flip it so left-side units face right and right-side units face left.
+const faceFlip = (look, side) => (side === 'R') !== (!!look?.img && look?.facing === 'L');
 const FX_SND = { beam: 'beam', shot: 'shot', missile: 'missile', slash: 'slash', mega: 'mega', rainbow: 'rainbow' };
 const FX_COL = { beam: '#22d3ee', shot: '#fde047', missile: '#fb923c', slash: '#f8fafc', mega: '#f472b6', rainbow: '#a78bfa' };
 const LINE_CUE = { main: 'attack', support: 'attack', counter: 'counter' };
@@ -154,9 +156,9 @@ export default function Cinematic({ exchange, mode = 'full', stageArt, onDone })
     const dead = st.boom && scene.killed === u.uid;
     return (
       <div className={`absolute bottom-[20%] w-[34%] aspect-square ${side === 'L' ? 'left-[9%]' : 'right-[9%]'}`} style={{ opacity: hidden ? 0.25 : 1, transition: 'opacity .2s' }}>
-        {evading && <div className="absolute inset-0 cin-ghost" style={{ transform: `translate(${side === 'L' ? '-8%' : '8%'},-10%)` }}><MechaSprite look={u.look} size="100%" flip={side === 'R'} /></div>}
+        {evading && <div className="absolute inset-0 cin-ghost" style={{ transform: `translate(${side === 'L' ? '-8%' : '8%'},-10%)` }}><MechaSprite look={u.look} size="100%" flip={faceFlip(u.look, side)} /></div>}
         <div key={`${st.idx}-${st.phase}-${st.shake}`} className={`absolute inset-0 ${cls} ${st.dmg && st.dmg.side === side && st.phase === 'impact' && !st.extra?.kind ? 'anim-shake' : ''}`} style={{ opacity: dead ? 0 : 1, transition: 'opacity .5s .2s' }}>
-          <MechaSprite look={u.look} size="100%" flip={side === 'R'} bob />
+          <MechaSprite look={u.look} size="100%" flip={faceFlip(u.look, side)} bob />
         </div>
       </div>
     );
@@ -193,7 +195,7 @@ export default function Cinematic({ exchange, mode = 'full', stageArt, onDone })
         {/* support / guard unit sliding in */}
         {extra && (
           <div key={`ex-${st.idx}-${st.extra.kind}`} className={`absolute bottom-[14%] w-[26%] aspect-square ${st.extra.side === 'L' ? 'left-[22%] cin-in-l' : 'right-[22%] cin-in-r'}`}>
-            <MechaSprite look={extra.look} size="100%" flip={st.extra.side === 'R'} bob />
+            <MechaSprite look={extra.look} size="100%" flip={faceFlip(extra.look, st.extra.side)} bob />
             {st.extra.kind === 'guard' && <div className="absolute inset-[-8%] rounded-full border-4 border-sky-300 bg-sky-400/20 shield-pulse" />}
           </div>
         )}

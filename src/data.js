@@ -21,9 +21,19 @@ import pilotMigoImg from './assets/pilot_migo.webp';
 import pilotDiwataImg from './assets/pilot_diwata.webp';
 import cutinMigoImg from './assets/cutin_migo.webp';
 import cutinDiwataImg from './assets/cutin_diwata.webp';
+import pilotKapitanPulaImg from './assets/pilot_kapitan_pula.webp';
+import cutinKapitanPulaImg from './assets/cutin_kapitanPula.webp';
+import pilotTisoyImg from './assets/pilot_tisoy_ramos.webp';
+import cutinTisoyImg from './assets/cutin_tisoy.webp';
+import pilotBertoImg from './assets/pilot_mang_berto.webp';
+import cutinBertoImg from './assets/cutin_berto.webp';
+import pilotIndayImg from './assets/pilot_inday_kidlat.webp';
+import cutinIndayImg from './assets/cutin_inday.webp';
+import pilotDatuDilimImg from './assets/pilot_datu_dilim.webp';
+import cutinDatuDilimImg from './assets/cutin_datuDilim.webp';
 
 export const GAME_TITLE = 'Mecha Bayanihan Tactics';
-export const APP_VERSION = 'v1.3.0';
+export const APP_VERSION = 'v1.3.2';
 export const CUSTOM_TEMPLATE_IMG = customTemplateImg;
 export const ICON_IMG = iconImg;
 export const KEYART_IMG = keyartImg;
@@ -49,6 +59,16 @@ export const INSTALLED_ART = {
   'pilot_reyna_diwata.png': pilotDiwataImg,
   'cutin_migo.png': cutinMigoImg,
   'cutin_diwata.png': cutinDiwataImg,
+  'pilot_kapitan_pula.png': pilotKapitanPulaImg,
+  'cutin_kapitanPula.png': cutinKapitanPulaImg,
+  'pilot_tisoy_ramos.png': pilotTisoyImg,
+  'cutin_tisoy.png': cutinTisoyImg,
+  'pilot_mang_berto.png': pilotBertoImg,
+  'cutin_berto.png': cutinBertoImg,
+  'pilot_inday_kidlat.png': pilotIndayImg,
+  'cutin_inday.png': cutinIndayImg,
+  'pilot_datu_dilim.png': pilotDatuDilimImg,
+  'cutin_datuDilim.png': cutinDatuDilimImg,
 };
 
 // ---------- Terrain ----------
@@ -83,7 +103,7 @@ export const MECHA = {
       { name: 'Pito Flare Missiles', power: 90, min: 2, max: 4, en: 15, hit: 66, crit: 8, fx: 'missile' },
       { name: 'Ronda Barrage', power: 170, min: 1, max: 4, en: 40, hit: 80, crit: 15, ult: true, fx: 'mega' },
     ],
-    look: { img: tanod01Img, head: 'tanod', torso: 'standard', arms: 'standard', legs: 'standard', pack: 'thrusters', weapon: 'rifle', colors: { p: '#e2e8f0', s: '#1d4ed8', a: '#facc15', e: '#22d3ee' } },
+    look: { img: tanod01Img, facing: 'L', head: 'tanod', torso: 'standard', arms: 'standard', legs: 'standard', pack: 'thrusters', weapon: 'rifle', colors: { p: '#e2e8f0', s: '#1d4ed8', a: '#facc15', e: '#22d3ee' } },
   },
   tanodCustom: {
     id: 'tanodCustom', name: 'TND-02 Tanod Custom', short: 'Tanod Custom', cls: 'Defender', rarity: 'SR', faction: 'Bayanihan',
@@ -94,7 +114,7 @@ export const MECHA = {
       { name: 'Bumper Shield Bash', power: 95, min: 1, max: 1, en: 10, hit: 85, crit: 10, fx: 'slash' },
       { name: 'Barangay Wall Cannon', power: 190, min: 2, max: 4, en: 45, hit: 78, crit: 15, ult: true, fx: 'mega' },
     ],
-    look: { img: tanodCustomImg, head: 'tanod', torso: 'heavy', arms: 'heavy', legs: 'heavy', pack: 'thrusters', weapon: 'shield', colors: { p: '#1e3a8a', s: '#e2e8f0', a: '#f59e0b', e: '#67e8f9' } },
+    look: { img: tanodCustomImg, facing: 'L', head: 'tanod', torso: 'heavy', arms: 'heavy', legs: 'heavy', pack: 'thrusters', weapon: 'shield', colors: { p: '#1e3a8a', s: '#e2e8f0', a: '#f59e0b', e: '#67e8f9' } },
   },
   agilaMk2: {
     id: 'agilaMk2', name: 'AGL-2 Agila Mk-II', short: 'Agila Mk-II', cls: 'Attacker', rarity: 'SR', faction: 'Bayanihan',
@@ -105,7 +125,7 @@ export const MECHA = {
       { name: 'Feather Vulcans', power: 70, min: 1, max: 2, en: 0, hit: 86, crit: 5, fx: 'shot' },
       { name: 'Haring Ibon Dive', power: 230, min: 1, max: 3, en: 55, hit: 82, crit: 25, ult: true, fx: 'mega' },
     ],
-    look: { img: agilaImg, head: 'agila', torso: 'slim', arms: 'standard', legs: 'thruster', pack: 'eagle', weapon: 'rifle', colors: { p: '#f8fafc', s: '#78350f', a: '#fbbf24', e: '#fde047' } },
+    look: { img: agilaImg, facing: 'L', head: 'agila', torso: 'slim', arms: 'standard', legs: 'thruster', pack: 'eagle', weapon: 'rifle', colors: { p: '#f8fafc', s: '#78350f', a: '#fbbf24', e: '#fde047' } },
   },
   sarimanokZ: {
     id: 'sarimanokZ', name: 'SRM-Z Sarimanok Zeta', short: 'Sarimanok Z', cls: 'Attacker', rarity: 'SSR', faction: 'Bayanihan',
@@ -116,7 +136,7 @@ export const MECHA = {
       { name: 'Kampilan Saber', power: 140, min: 1, max: 1, en: 10, hit: 86, crit: 18, fx: 'slash' },
       { name: 'Bahaghari Burst', power: 290, min: 2, max: 5, en: 70, hit: 85, crit: 30, ult: true, fx: 'rainbow' },
     ],
-    look: { img: sarimanokImg, head: 'sarimanok', torso: 'slim', arms: 'blade', legs: 'thruster', pack: 'plume', weapon: 'sword', colors: { p: '#f8fafc', s: '#dc2626', a: '#16a34a', e: '#22d3ee' } },
+    look: { img: sarimanokImg, facing: 'L', head: 'sarimanok', torso: 'slim', arms: 'blade', legs: 'thruster', pack: 'plume', weapon: 'sword', colors: { p: '#f8fafc', s: '#dc2626', a: '#16a34a', e: '#22d3ee' } },
   },
   kapreGrunt: {
     id: 'kapreGrunt', name: 'KPR-06 Kapre', short: 'Kapre', cls: 'Attacker', rarity: 'R', faction: 'Dilim',
@@ -138,7 +158,7 @@ export const MECHA = {
       { name: 'Hoof Cannon', power: 95, min: 2, max: 3, en: 10, hit: 72, crit: 8, fx: 'missile' },
       { name: 'Ligaw na Daan', power: 220, min: 1, max: 2, en: 50, hit: 86, crit: 25, ult: true, fx: 'mega' },
     ],
-    look: { img: tikbalangImg, liberatedHue: 180, head: 'tikbalang', torso: 'standard', arms: 'claw', legs: 'heavy', pack: 'thrusters', weapon: 'whip', colors: { p: '#334155', s: '#7c2d12', a: '#38bdf8', e: '#ef4444' } },
+    look: { img: tikbalangImg, facing: 'L', liberatedHue: 180, head: 'tikbalang', torso: 'standard', arms: 'claw', legs: 'heavy', pack: 'thrusters', weapon: 'whip', colors: { p: '#334155', s: '#7c2d12', a: '#38bdf8', e: '#ef4444' } },
   },
   manananggal: {
     id: 'manananggal', name: 'MNG-14 Manananggal', short: 'Manananggal', cls: 'Attacker', rarity: 'SR', faction: 'Dilim',
@@ -149,7 +169,7 @@ export const MECHA = {
       { name: 'Bat-Wing Funnels', power: 100, min: 2, max: 4, en: 15, hit: 75, crit: 10, fx: 'missile' },
       { name: 'Hating-Gabi Hunt', power: 245, min: 1, max: 4, en: 60, hit: 82, crit: 28, ult: true, fx: 'mega' },
     ],
-    look: { img: manananggalImg, liberatedHue: 260, head: 'manananggal', torso: 'slim', arms: 'claw', legs: 'none', pack: 'batwings', weapon: 'lance', colors: { p: '#4c1d95', s: '#1e1b4b', a: '#f43f5e', e: '#fb7185' } },
+    look: { img: manananggalImg, facing: 'L', liberatedHue: 260, head: 'manananggal', torso: 'slim', arms: 'claw', legs: 'none', pack: 'batwings', weapon: 'lance', colors: { p: '#4c1d95', s: '#1e1b4b', a: '#f43f5e', e: '#fb7185' } },
   },
   bakunawa: {
     id: 'bakunawa', name: 'BKN-04 Bakunawa', short: 'Bakunawa', cls: 'Defender', rarity: 'SSR', faction: 'Dilim',
@@ -171,7 +191,7 @@ export const MECHA = {
       { name: 'Estribo Saber', power: 125, min: 1, max: 1, en: 10, hit: 86, crit: 15, fx: 'slash' },
       { name: 'Para Po! Full Throttle', power: 240, min: 1, max: 3, en: 55, hit: 82, crit: 25, ult: true, fx: 'mega' },
     ],
-    look: { img: jeepneyKaiserImg, head: 'jeep', torso: 'jeepney', arms: 'standard', legs: 'standard', pack: 'thrusters', weapon: 'rifle', colors: { p: '#cbd5e1', s: '#dc2626', a: '#facc15', e: '#22d3ee' } },
+    look: { img: jeepneyKaiserImg, facing: 'L', head: 'jeep', torso: 'jeepney', arms: 'standard', legs: 'standard', pack: 'thrusters', weapon: 'rifle', colors: { p: '#cbd5e1', s: '#dc2626', a: '#facc15', e: '#22d3ee' } },
   },
 };
 
@@ -192,6 +212,7 @@ export const PILOTS = {
     story: 'Once the Dilim Legion\'s most feared ace. He defected the night Datu Dilim ordered the fishing villages of Manila Bay plunged into darkness — his mother\'s village. He still wears her red cap.',
     skill: { id: 'redcomet', name: 'Pulang Kidlat', desc: '+1 Move, +20% Crit Rate.' },
     stats: { atk: 12, def: 4, mob: 12 },
+    img: pilotKapitanPulaImg,
     look: { skin: '#e0ac69', hair: '#fbbf24', style: 'short', acc: 'cap', accColor: '#b91c1c', suit: '#991b1b' },
   },
   tisoy: {
@@ -199,6 +220,7 @@ export const PILOTS = {
     story: 'A mestizo street kid from Tondo who never lost a tirador (slingshot) contest. He sends every peso of pilot pay home to his little siblings, and never wastes a shot.',
     skill: { id: 'sniper', name: 'Tirador', desc: '+15% Support Attack damage.' },
     stats: { atk: 5, def: 2, mob: 6 },
+    img: pilotTisoyImg,
     look: { skin: '#f1c27d', hair: '#7c2d12', style: 'short', acc: 'bandana', accColor: '#16a34a', suit: '#065f46' },
   },
   berto: {
@@ -206,6 +228,7 @@ export const PILOTS = {
     story: 'Drove the Cubao–Quiapo jeepney route for thirty years. When the orbital skyway fell, he ferried survivors out through the debris in his old jeep. Calm, stubborn, and impossible to rattle.',
     skill: { id: 'veteran', name: 'Beterano', desc: '+20% DEF.' },
     stats: { atk: 4, def: 10, mob: 2 },
+    img: pilotBertoImg,
     look: { skin: '#8d5524', hair: '#9ca3af', style: 'bald', acc: 'towel', accColor: '#f8fafc', suit: '#57534e' },
   },
   inday: {
@@ -213,6 +236,7 @@ export const PILOTS = {
     story: 'A Dinagyang festival dancer from Iloilo. Lightning struck her family\'s boat during a storm — she survived with uncanny reflexes and a fighting spirit that grows with every beat of the drum.',
     skill: { id: 'biosensor', name: 'Dugong Bayani', desc: 'Double Tension gain from hits & kills.' },
     stats: { atk: 8, def: 3, mob: 9 },
+    img: pilotIndayImg,
     look: { skin: '#c68642', hair: '#111827', style: 'bun', acc: 'clip', accColor: '#f472b6', suit: '#7e22ce' },
   },
   diwata: {
@@ -242,6 +266,7 @@ export const PILOTS = {
     story: 'An ancient chieftain who taught the Bakunawa its hunger. Seven moons once lit the islands; he believes that when the last one is eaten, hope — and war — will end forever.',
     skill: { id: 'boss', name: 'Eklipse Aura', desc: 'Enemies within 2 tiles suffer -15% Hit. +20% DEF.' },
     stats: { atk: 18, def: 10, mob: 10 },
+    img: pilotDatuDilimImg,
     look: { skin: '#78716c', hair: '#f8fafc', style: 'long', acc: 'crown', accColor: '#f59e0b', suit: '#450a0a' },
   },
 };
