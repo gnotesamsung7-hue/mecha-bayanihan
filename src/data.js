@@ -21,9 +21,19 @@ import pilotMigoImg from './assets/pilot_migo.webp';
 import pilotDiwataImg from './assets/pilot_diwata.webp';
 import cutinMigoImg from './assets/cutin_migo.webp';
 import cutinDiwataImg from './assets/cutin_diwata.webp';
+import pilotKapitanPulaImg from './assets/pilot_kapitan_pula.webp';
+import cutinKapitanPulaImg from './assets/cutin_kapitan_pula.webp';
+import pilotTisoyImg from './assets/pilot_tisoy_ramos.webp';
+import cutinTisoyImg from './assets/cutin_tisoy.webp';
+import pilotBertoImg from './assets/pilot_mang_berto.webp';
+import cutinBertoImg from './assets/cutin_berto.webp';
+import pilotIndayImg from './assets/pilot_inday_kidlat.webp';
+import cutinIndayImg from './assets/cutin_inday.webp';
+import pilotDatuDilimImg from './assets/pilot_datu_dilim.webp';
+import cutinDatuDilimImg from './assets/cutin_datu_dilim.webp';
 
 export const GAME_TITLE = 'Mecha Bayanihan Tactics';
-export const APP_VERSION = 'v1.3.0';
+export const APP_VERSION = 'v1.3.2';
 export const CUSTOM_TEMPLATE_IMG = customTemplateImg;
 export const ICON_IMG = iconImg;
 export const KEYART_IMG = keyartImg;
@@ -49,6 +59,16 @@ export const INSTALLED_ART = {
   'pilot_reyna_diwata.png': pilotDiwataImg,
   'cutin_migo.png': cutinMigoImg,
   'cutin_diwata.png': cutinDiwataImg,
+  'pilot_kapitan_pula.png': pilotKapitanPulaImg,
+  'cutin_kapitan_pula.png': cutinKapitanPulaImg,
+  'pilot_tisoy_ramos.png': pilotTisoyImg,
+  'cutin_tisoy.png': cutinTisoyImg,
+  'pilot_mang_berto.png': pilotBertoImg,
+  'cutin_berto.png': cutinBertoImg,
+  'pilot_inday_kidlat.png': pilotIndayImg,
+  'cutin_inday.png': cutinIndayImg,
+  'pilot_datu_dilim.png': pilotDatuDilimImg,
+  'cutin_datu_dilim.png': cutinDatuDilimImg,
 };
 
 // ---------- Terrain ----------
@@ -192,6 +212,7 @@ export const PILOTS = {
     story: 'Once the Dilim Legion\'s most feared ace. He defected the night Datu Dilim ordered the fishing villages of Manila Bay plunged into darkness — his mother\'s village. He still wears her red cap.',
     skill: { id: 'redcomet', name: 'Pulang Kidlat', desc: '+1 Move, +20% Crit Rate.' },
     stats: { atk: 12, def: 4, mob: 12 },
+    img: pilotKapitanPulaImg,
     look: { skin: '#e0ac69', hair: '#fbbf24', style: 'short', acc: 'cap', accColor: '#b91c1c', suit: '#991b1b' },
   },
   tisoy: {
@@ -199,6 +220,7 @@ export const PILOTS = {
     story: 'A mestizo street kid from Tondo who never lost a tirador (slingshot) contest. He sends every peso of pilot pay home to his little siblings, and never wastes a shot.',
     skill: { id: 'sniper', name: 'Tirador', desc: '+15% Support Attack damage.' },
     stats: { atk: 5, def: 2, mob: 6 },
+    img: pilotTisoyImg,
     look: { skin: '#f1c27d', hair: '#7c2d12', style: 'short', acc: 'bandana', accColor: '#16a34a', suit: '#065f46' },
   },
   berto: {
@@ -206,6 +228,7 @@ export const PILOTS = {
     story: 'Drove the Cubao–Quiapo jeepney route for thirty years. When the orbital skyway fell, he ferried survivors out through the debris in his old jeep. Calm, stubborn, and impossible to rattle.',
     skill: { id: 'veteran', name: 'Beterano', desc: '+20% DEF.' },
     stats: { atk: 4, def: 10, mob: 2 },
+    img: pilotBertoImg,
     look: { skin: '#8d5524', hair: '#9ca3af', style: 'bald', acc: 'towel', accColor: '#f8fafc', suit: '#57534e' },
   },
   inday: {
@@ -213,6 +236,7 @@ export const PILOTS = {
     story: 'A Dinagyang festival dancer from Iloilo. Lightning struck her family\'s boat during a storm — she survived with uncanny reflexes and a fighting spirit that grows with every beat of the drum.',
     skill: { id: 'biosensor', name: 'Dugong Bayani', desc: 'Double Tension gain from hits & kills.' },
     stats: { atk: 8, def: 3, mob: 9 },
+    img: pilotIndayImg,
     look: { skin: '#c68642', hair: '#111827', style: 'bun', acc: 'clip', accColor: '#f472b6', suit: '#7e22ce' },
   },
   diwata: {
@@ -242,6 +266,7 @@ export const PILOTS = {
     story: 'An ancient chieftain who taught the Bakunawa its hunger. Seven moons once lit the islands; he believes that when the last one is eaten, hope — and war — will end forever.',
     skill: { id: 'boss', name: 'Eklipse Aura', desc: 'Enemies within 2 tiles suffer -15% Hit. +20% DEF.' },
     stats: { atk: 18, def: 10, mob: 10 },
+    img: pilotDatuDilimImg,
     look: { skin: '#78716c', hair: '#f8fafc', style: 'long', acc: 'crown', accColor: '#f59e0b', suit: '#450a0a' },
   },
 };
