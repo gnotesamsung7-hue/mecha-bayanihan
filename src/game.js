@@ -116,5 +116,6 @@ export function decodeDesign(code) {
 // Captured Dilim frames wear a Bayanihan repaint on your side (matches combat.js).
 export function playerLook(m) {
   if (!m) return null;
-  return m.faction === 'Dilim' ? { ...m.look, colors: { p: '#0e7490', s: '#e2e8f0', a: '#facc15', e: '#22d3ee' } } : m.look;
+  if (m.faction !== 'Dilim') return m.look;
+  return m.look.img ? { ...m.look, hue: m.look.liberatedHue || 180 } : { ...m.look, colors: { p: '#0e7490', s: '#e2e8f0', a: '#facc15', e: '#22d3ee' } };
 }

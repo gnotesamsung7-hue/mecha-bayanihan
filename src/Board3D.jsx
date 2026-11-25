@@ -20,7 +20,8 @@ const texCache = new Map();
 function mechaTexture(look) {
   const k = JSON.stringify(look);
   if (texCache.has(k)) return texCache.get(k);
-  const c = document.createElement('canvas'); c.width = 256; c.height = 256;
+  // artwork gets a wider canvas so winged / long-weapon art isn't shrunk
+  const c = document.createElement('canvas'); c.width = look.img ? 384 : 256; c.height = 256;
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
   const img = new Image();
@@ -29,9 +30,10 @@ function mechaTexture(look) {
     // draw the art directly, letterboxed into the square like the SVG does
     const raw = new Image();
     raw.onload = () => {
-      const g = c.getContext('2d'); const s = Math.min(236 / raw.width, 236 / raw.height);
+      const g = c.getContext('2d'); const s = Math.min(372 / raw.width, 244 / raw.height);
       const w = raw.width * s, h = raw.height * s;
-      g.drawImage(raw, (256 - w) / 2, 256 - h - 6, w, h); tex.needsUpdate = true;
+      if (look.hue) g.filter = `hue-rotate(${look.hue}deg)`;
+      g.drawImage(raw, (384 - w) / 2, 256 - h - 6, w, h); tex.needsUpdate = true;
     };
     raw.src = look.img;
   } else {
@@ -260,7 +262,7 @@ export default function Board3D({ battle, stage, moveSet, atkSet, threatSet, tgt
         const base = new THREE.Mesh(new THREE.RingGeometry(0.2, 0.33, 32), new THREE.MeshBasicMaterial({ color: u.team === 'player' ? 0x38bdf8 : 0xf43f5e, transparent: true, opacity: 0.7, side: THREE.DoubleSide, depthWrite: false }));
         base.rotation.x = -Math.PI / 2; base.position.y = 0.01; group.add(base);
         const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: mechaTexture(u.look), transparent: true, alphaTest: 0.05 }));
-        sprite.center.set(0.5, 0.04); const sc = u.boss ? 1.35 : 1.0; sprite.scale.set(sc, sc, 1); sprite.userData = { x: u.x, y: u.y };
+        sprite.center.set(0.5, 0.04); const sc = u.boss ? 1.35 : 1.0; sprite.scale.set(sc * (u.look.img ? 1.5 : 1), sc, 1); sprite.userData = { x: u.x, y: u.y };
         group.add(sprite);
         const hc = hpCanvas(u); const htex = new THREE.CanvasTexture(hc);
         const hp = new THREE.Sprite(new THREE.SpriteMaterial({ map: htex, transparent: true, depthTest: false }));

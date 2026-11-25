@@ -486,7 +486,7 @@ export function MechaSprite({ look, size = 64, className = '', dim = false, bob 
       <g transform={flip ? 'translate(100,0) scale(-1,1)' : undefined}>
         <g className={bob ? 'bob' : undefined}>
           {look?.img ? (
-            <image href={look.img} x={-4} y={-8} width={108} height={108} preserveAspectRatio="xMidYMid meet" />
+            <image href={look.img} x={-4} y={-8} width={108} height={108} preserveAspectRatio="xMidYMid meet" style={look.hue ? { filter: `hue-rotate(${look.hue}deg)` } : undefined} />
           ) : (
             <>
               <Pack id={look?.pack} c={c} glow={glow} />
@@ -513,6 +513,12 @@ export function PilotPortrait({ pilot, size = 48, className = '' }) {
       <defs>
         <clipPath id={`pc-${pilot?.id}`}><circle cx="30" cy="30" r="29" /></clipPath>
       </defs>
+      {pilot?.img ? (
+        <g clipPath={`url(#pc-${pilot?.id})`}>
+          <rect width="60" height="60" fill={shade(L.suit || '#334155', -0.55)} />
+          <image href={pilot.img} x="0" y="0" width="60" height="60" preserveAspectRatio="xMidYMin slice" />
+        </g>
+      ) : (
       <g clipPath={`url(#pc-${pilot?.id})`}>
         <rect width="60" height="60" fill="#0f172a" />
         <circle cx="30" cy="30" r="29" fill={shade(L.suit || '#334155', -0.55)} />
@@ -542,6 +548,7 @@ export function PilotPortrait({ pilot, size = 48, className = '' }) {
         {L.acc === 'crown' && <path d="M19 15 Q22 6 26 13 Q30 4 34 13 Q38 6 41 15 Z" fill={L.accColor} stroke={O} strokeWidth="0.9" />}
         {L.acc === 'visor' && <rect x="18" y="25" width="24" height="5" rx="2" fill={L.accColor} opacity=".9" />}
       </g>
+      )}
       <circle cx="30" cy="30" r="29" fill="none" stroke="rgba(148,163,184,.5)" strokeWidth="1" />
     </svg>
   );
