@@ -139,10 +139,17 @@ export default function Cinematic({ exchange, mode = 'full', stageArt, onDone })
   const Slot = ({ u, side }) => {
     if (!u) return null;
     const isShooter = u.uid === shooterUid && !(st.extra && st.extra.kind === 'support' && st.extra.side === side);
+    const isDefending = u.uid === scene.to && st.phase === 'impact' && !st.evade && st.extra?.kind === 'guard';
+    const isGuarding = u.uid === st.extra?.uid && st.extra?.kind === 'guard' && st.phase === 'impact';
     const dash = isFire && isShooter && scene.fx === 'slash';
     const lunge = isFire && isShooter && scene.fx !== 'slash';
     const evading = st.evade === side && st.phase === 'impact';
-    const cls = dash ? (side === 'L' ? 'cin-dash-r' : 'cin-dash-l') : lunge ? (side === 'L' ? 'cin-lunge-r' : 'cin-lunge-l') : evading ? (side === 'L' ? 'cin-evade-l' : 'cin-evade-r') : '';
+    const guarding = (isDefending || isGuarding) && st.phase === 'impact';
+    const cls = dash ? (side === 'L' ? 'cin-dash-r' : 'cin-dash-l')
+      : lunge ? (side === 'L' ? 'cin-lunge-r' : 'cin-lunge-l')
+      : guarding ? (side === 'L' ? 'cin-guard-r' : 'cin-guard-l')
+      : evading ? (side === 'L' ? 'cin-evade-l' : 'cin-evade-r')
+      : '';
     const hidden = (st.extra?.kind === 'support' && st.extra.side === side && u.uid !== st.extra.uid);
     const dead = st.boom && scene.killed === u.uid;
     return (

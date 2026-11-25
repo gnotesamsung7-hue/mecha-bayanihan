@@ -41,18 +41,23 @@ g.hex:hover .hex-hover { opacity: .1; }
 .cin-beam { animation: cinBeam .5s ease-out forwards; }
 @keyframes cinShot { 0%{transform:translateX(0);opacity:1} 90%{opacity:1} 100%{transform:translateX(var(--dx));opacity:0} }
 .cin-shot { animation: cinShot .32s linear forwards; }
-@keyframes cinDashR { 0%{transform:translateX(0)} 45%{transform:translateX(105%)} 60%{transform:translateX(105%)} 100%{transform:translateX(0)} }
-@keyframes cinDashL { 0%{transform:translateX(0)} 45%{transform:translateX(-105%)} 60%{transform:translateX(-105%)} 100%{transform:translateX(0)} }
-.cin-dash-r { animation: cinDashR .6s cubic-bezier(.3,.9,.4,1) forwards; }
-.cin-dash-l { animation: cinDashL .6s cubic-bezier(.3,.9,.4,1) forwards; }
-@keyframes cinLungeR { 0%,100%{transform:translateX(0)} 30%{transform:translateX(-5%)} 55%{transform:translateX(7%)} }
-@keyframes cinLungeL { 0%,100%{transform:translateX(0)} 30%{transform:translateX(5%)} 55%{transform:translateX(-7%)} }
-.cin-lunge-r { animation: cinLungeR .45s ease-out; }
-.cin-lunge-l { animation: cinLungeL .45s ease-out; }
-@keyframes cinEvadeR { 0%{transform:translate(0,0)} 35%{transform:translate(16%,-20%)} 70%{transform:translate(16%,-20%)} 100%{transform:translate(0,0)} }
-@keyframes cinEvadeL { 0%{transform:translate(0,0)} 35%{transform:translate(-16%,-20%)} 70%{transform:translate(-16%,-20%)} 100%{transform:translate(0,0)} }
-.cin-evade-r { animation: cinEvadeR .7s ease-out; }
-.cin-evade-l { animation: cinEvadeL .7s ease-out; }
+@keyframes cinDashR { 0%{transform:translateX(0) scaleY(1) rotate(0deg)} 25%{transform:translateX(20%) scaleY(0.9) rotate(-8deg)} 50%{transform:translateX(100%) scaleY(1.1) rotate(-16deg)} 65%{transform:translateX(110%) scaleY(0.95) rotate(-18deg)} 100%{transform:translateX(0) scaleY(1) rotate(0deg)} }
+@keyframes cinDashL { 0%{transform:translateX(0) scaleY(1) rotate(0deg)} 25%{transform:translateX(-20%) scaleY(0.9) rotate(8deg)} 50%{transform:translateX(-100%) scaleY(1.1) rotate(16deg)} 65%{transform:translateX(-110%) scaleY(0.95) rotate(18deg)} 100%{transform:translateX(0) scaleY(1) rotate(0deg)} }
+.cin-dash-r { animation: cinDashR .65s cubic-bezier(.2,.9,.3,1) forwards; }
+.cin-dash-l { animation: cinDashL .65s cubic-bezier(.2,.9,.3,1) forwards; }
+@keyframes cinLungeR { 0%,100%{transform:translateX(0) scaleX(1)} 25%{transform:translateX(-8%) scaleX(0.95)} 50%{transform:translateX(14%) scaleX(1.08)} 75%{transform:translateX(14%) scaleX(1.08)} }
+@keyframes cinLungeL { 0%,100%{transform:translateX(0) scaleX(1)} 25%{transform:translateX(8%) scaleX(0.95)} 50%{transform:translateX(-14%) scaleX(1.08)} 75%{transform:translateX(-14%) scaleX(1.08)} }
+.cin-lunge-r { animation: cinLungeR .5s cubic-bezier(.3,.8,.4,1); }
+.cin-lunge-l { animation: cinLungeL .5s cubic-bezier(.3,.8,.4,1); }
+
+@keyframes cinGuardR { 0%,100%{transform:translateX(0) scaleY(1)} 30%{transform:translateX(-6%) scaleY(0.92)} 60%{transform:translateX(-8%) scaleY(0.88)} }
+@keyframes cinGuardL { 0%,100%{transform:translateX(0) scaleY(1)} 30%{transform:translateX(6%) scaleY(0.92)} 60%{transform:translateX(8%) scaleY(0.88)} }
+.cin-guard-r { animation: cinGuardR .4s ease-out forwards; }
+.cin-guard-l { animation: cinGuardL .4s ease-out forwards; }
+@keyframes cinEvadeR { 0%{transform:translate(0,0) rotate(0deg)} 15%{transform:translate(4%,-6%) rotate(-8deg)} 35%{transform:translate(20%,-24%) rotate(-12deg)} 50%{transform:translate(22%,-20%) rotate(-8deg)} 70%{transform:translate(20%,-16%) rotate(-4deg)} 100%{transform:translate(0,0) rotate(0deg)} }
+@keyframes cinEvadeL { 0%{transform:translate(0,0) rotate(0deg)} 15%{transform:translate(-4%,-6%) rotate(8deg)} 35%{transform:translate(-20%,-24%) rotate(12deg)} 50%{transform:translate(-22%,-20%) rotate(8deg)} 70%{transform:translate(-20%,-16%) rotate(4deg)} 100%{transform:translate(0,0) rotate(0deg)} }
+.cin-evade-r { animation: cinEvadeR .7s cubic-bezier(.3,.8,.4,1); }
+.cin-evade-l { animation: cinEvadeL .7s cubic-bezier(.3,.8,.4,1); }
 @keyframes cinGhost { 0%{opacity:0} 25%{opacity:.45} 100%{opacity:0} }
 .cin-ghost { animation: cinGhost .7s ease-out forwards; }
 @keyframes cinSlideInR { 0%{transform:translateX(90%);opacity:0} 35%{transform:translateX(0);opacity:1} 100%{transform:translateX(0);opacity:1} }
